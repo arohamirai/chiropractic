@@ -13,12 +13,11 @@
 #define DRAW_MEASURE 3
 
 typedef struct _logLnfo {
-	/*CvPoint p1;
-	CvPoint p2;*/
 	cv::Point p1;
 	cv::Point p2;
 	cv::Point center;
 	int op;  //操作类型
+	int step;
 	char text[20];
 }logInfo;
 
@@ -63,13 +62,12 @@ private:
 	cv::Mat m_maskShowImg; // 用于显示
 
 	cv::Point m_p1, m_p2;  // 图像坐标系,用于画图
+	cv::Point m_pp;			//用于标注
 
 
 
 	cv::vector<logInfo> m_vecLog;	 // 操作日志，保存的坐标系为m_srcImg坐标系
 	cv::vector<logInfo> m_vecDelLog; // 用于重做
-	cv::vector<logInfo> m_vecMeasure; // 用于测量
-	logInfo m_stuLog;					// 用于记录测量信息
 
 	double m_dScale;	//缩放比例
 
@@ -99,11 +97,31 @@ private:
 	double m_dHeight;
 	double m_dWidthScale;
 	double m_dHeightScale;
+////////////////////////////////////////////////////////////
+	double m_gradient_x;		// 针对性平行
+	double m_gradient_y;
+	double m_gradient_x1;
+	double m_gradient_y1;
+
+	double m_dLlength;
+	double m_dRlength;
+	double m_dLlength1;
+	double m_dRlength1;
+
+	int m_curStep;				// 当前操作步骤
+
+// 画图相关参数
+	int m_l;			// 线宽
+	cv::Scalar m_lineColor;	// 线的颜色
+	cv::Point m_pd;			//骶骨中线关键点
 
 // 辅助函数
 private:
 	bool intersect(CvPoint aa, CvPoint bb, CvPoint cc, CvPoint dd);
 	double determinant(double v1, double v2, double v3, double v4);
+	void  lineExt(double grad, cv::Point center, double lenth_lt, double lenth_rb, cv::Point &p_l, cv::Point &p_r);
+	cv::Point lineCrossDot(double grad, cv::Point p1, cv::Point p2);
+
 public:
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
@@ -126,4 +144,5 @@ public:
 	void Invalidate(BOOL bErase = 1);
 	void Draw(CDC *pDC);
 	afx_msg void OnBnClickedButton11();
+	afx_msg void OnBnClickedButton13();
 };
