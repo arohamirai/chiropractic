@@ -19,8 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{47C4C767-2530-4FB1-8633-60B146D397E0}</ProjectGuid>
-    <RootNamespace>chiropractic</RootNamespace>
+    <ProjectGuid>{151671B3-7900-406B-8194-C47948372746}</ProjectGuid>
+    <RootNamespace>Register</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
     <Keyword>MFCProj</Keyword>
   </PropertyGroup>
@@ -62,18 +62,15 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\VS15_OPENCV2413_D_x86.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\VS15_OPENCV2413_D.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\VS15_OPENCV2413_R.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -192,25 +189,15 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="chiropractic.h" />
-    <ClInclude Include="chiropracticDlg.h" />
-    <ClInclude Include="CvvImage.h" />
-    <ClInclude Include="InitGdiplus.h" />
-    <ClInclude Include="InputName.h" />
-    <ClInclude Include="Parameter.h" />
     <ClInclude Include="Register.h" />
+    <ClInclude Include="RegisterDlg.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="chiropractic.cpp" />
-    <ClCompile Include="chiropracticDlg.cpp" />
-    <ClCompile Include="CvvImage.cpp" />
-    <ClCompile Include="InitGdiplus.cpp" />
-    <ClCompile Include="InputName.cpp" />
-    <ClCompile Include="Parameter.cpp" />
     <ClCompile Include="Register.cpp" />
+    <ClCompile Include="RegisterDlg.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -219,20 +206,20 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="chiropractic.rc" />
+    <ResourceCompile Include="Register.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="res\chiropractic.rc2" />
+    <None Include="res\Register.rc2" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="res\chiropractic.ico" />
+    <Image Include="res\Register.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties RESOURCE_FILE="chiropractic.rc" />
+      <UserProperties RESOURCE_FILE="Register.rc" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>

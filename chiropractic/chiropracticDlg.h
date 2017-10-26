@@ -7,10 +7,10 @@
 #include "afxwin.h"
 #include"InitGdiplus.h"
 
-#define DRAW_LINE 0
-#define DRAW_RECT 1
-#define DRAW_LABEL 2
-#define DRAW_MEASURE 3
+#define DRAW_LINE 1
+#define DRAW_RECT 2
+#define DRAW_LABEL 3
+#define DRAW_MEASURE 4
 
 typedef struct _logLnfo {
 	cv::Point p1;
@@ -63,13 +63,13 @@ private:
 
 	cv::Point m_p1, m_p2;  // 图像坐标系,用于画图
 	cv::Point m_pp;			//用于标注
-
+	cv::Point m_selP1;		// 选取模式第一个点
+	cv::Point m_p[12];
 
 
 	cv::vector<logInfo> m_vecLog;	 // 操作日志，保存的坐标系为m_srcImg坐标系
 	cv::vector<logInfo> m_vecDelLog; // 用于重做
 
-	double m_dScale;	//缩放比例
 
 	REAL m_zoom;  //缩放系数
 	CRect m_Rect; //对话框的矩形区域
@@ -85,10 +85,6 @@ private:
 	bool m_bLButtonDown; //记录是否按下了鼠标左键
 	bool m_bDrawLine;
 	bool m_bDrawRect;
-	bool m_bDrawLabel;
-	bool m_bDel;
-	bool m_bMeasure;
-	bool m_bPutText;
 
 	int m_ctrlWidth;
 	int m_ctrlHeight;
@@ -107,8 +103,9 @@ private:
 	double m_dRlength;
 	double m_dLlength1;
 	double m_dRlength1;
-
+	double m_dLength;
 	int m_curStep;				// 当前操作步骤
+	std::string m_result;
 
 // 画图相关参数
 	int m_l;			// 线宽
@@ -121,7 +118,7 @@ private:
 	double determinant(double v1, double v2, double v3, double v4);
 	void  lineExt(double grad, cv::Point center, double lenth_lt, double lenth_rb, cv::Point &p_l, cv::Point &p_r);
 	cv::Point lineCrossDot(double grad, cv::Point p1, cv::Point p2);
-
+	std::string WChar2Ansi(LPCWSTR pwszSrc);
 public:
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);

@@ -18,10 +18,10 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="chiropractic.h">
+    <ClInclude Include="Register.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="chiropracticDlg.h">
+    <ClInclude Include="RegisterDlg.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="stdafx.h">
@@ -33,60 +33,30 @@
     <ClInclude Include="Resource.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="CvvImage.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Parameter.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="InitGdiplus.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="InputName.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Register.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="chiropractic.cpp">
+    <ClCompile Include="Register.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="chiropracticDlg.cpp">
+    <ClCompile Include="RegisterDlg.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="CvvImage.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Parameter.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="InitGdiplus.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="InputName.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Register.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="chiropractic.rc">
+    <ResourceCompile Include="Register.rc">
       <Filter>资源文件</Filter>
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="res\chiropractic.rc2">
+    <None Include="res\Register.rc2">
       <Filter>资源文件</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="res\chiropractic.ico">
+    <Image Include="res\Register.ico">
       <Filter>资源文件</Filter>
     </Image>
   </ItemGroup>
