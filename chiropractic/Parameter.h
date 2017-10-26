@@ -23,4 +23,5 @@ protected:
 public:
 	double m_dWidth;
 	double m_dHeight;
+	afx_msg void OnBnClickedOk();
 };

@@ -62,14 +62,10 @@ private:
 	cv::Mat m_maskShowImg; // 用于显示
 
 	cv::Point m_p1, m_p2;  // 图像坐标系,用于画图
-	cv::Point m_pp;			//用于标注
-	cv::Point m_selP1;		// 选取模式第一个点
 	cv::Point m_p[12];
-
 
 	cv::vector<logInfo> m_vecLog;	 // 操作日志，保存的坐标系为m_srcImg坐标系
 	cv::vector<logInfo> m_vecDelLog; // 用于重做
-
 
 	REAL m_zoom;  //缩放系数
 	CRect m_Rect; //对话框的矩形区域
@@ -110,7 +106,6 @@ private:
 // 画图相关参数
 	int m_l;			// 线宽
 	cv::Scalar m_lineColor;	// 线的颜色
-	cv::Point m_pd;			//骶骨中线关键点
 
 // 辅助函数
 private:

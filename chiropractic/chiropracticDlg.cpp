@@ -327,9 +327,9 @@ void CchiropracticDlg::OnBnClickedButton1()
 		return;
 	m_dWidth = dlg.m_dWidth;
 	m_dHeight = dlg.m_dHeight;
+
 	m_dWidthScale = m_dWidth / m_srcImg.cols;
 	m_dHeightScale = m_dHeight / m_srcImg.rows;
-
 	return;
 }
 void CchiropracticDlg::OnBnClickedButton6()
@@ -392,7 +392,7 @@ void CchiropracticDlg::OnMouseMove(UINT nFlags, CPoint point)
 	{
 		if (m_curStep == 1 || m_curStep == 9)
 		{
-			cv::line(m_maskShowImg, m_p1, pt, m_lineColor, m_l);
+			cv::line(m_maskShowImg, m_p[m_curStep - 1], pt, m_lineColor, m_l);
 		}
 	
 	}
@@ -435,27 +435,29 @@ void CchiropracticDlg::OnLButtonUp(UINT nFlags, CPoint point)
 		if (m_curStep == 0)
 		{
 			// 计算斜率
-			m_p1 = pt;
+			//m_p1 = pt;
+			m_p[0] = pt;
 		}
 		if (m_curStep == 1)
 		{
-			m_p2 = pt;
-			m_gradient_x = double(m_p1.y - m_p2.y) / (m_p1.x - m_p2.x + 10e-8); // 求斜率
+			m_p[1] = pt;
+			//m_p2 = pt;
+			m_gradient_x = double(m_p[0].y - m_p[1].y) / (m_p[0].x - m_p[1].x + 10e-8); // 求斜率
 			m_gradient_y = -1.0f / (m_gradient_x + 10e-8);
-			cv::line(m_maskImg, m_p1, m_p2, m_lineColor, m_l);
+			cv::line(m_maskImg, m_p[0], m_p[1], m_lineColor, m_l);
 
 			log.step = m_curStep;
-			log.p1 = m_p1;
-			log.p2 = m_p2;
+			log.p1 = m_p[0];
+			log.p2 = m_p[1];
 			log.op = DRAW_LINE;
 			m_vecLog.push_back(log);
 		}
 		// 左高
 		if (m_curStep == 2)	
 		{
+			m_p[2] = pt;
 			lineExt(m_gradient_x, pt, pt.x, 50 ,m_p1, m_p2);  // 左边
 			cv::line(m_maskImg, m_p1, m_p2, m_lineColor, m_l);
-			m_pp = pt;
 
 			log.center = pt; // 保存关键点
 			log.step = m_curStep;
@@ -467,6 +469,7 @@ void CchiropracticDlg::OnLButtonUp(UINT nFlags, CPoint point)
 		// 左底
 		if (m_curStep == 3)	
 		{
+			m_p[3] = pt;
 			lineExt(m_gradient_x, pt, pt.x, 50, m_p1, m_p2);
 			cv::line(m_maskImg, m_p1, m_p2, m_lineColor, m_l);
 
@@ -479,20 +482,20 @@ void CchiropracticDlg::OnLButtonUp(UINT nFlags, CPoint point)
 
 			// 标注
 			cv::Point dot;
-			dot = lineCrossDot(m_gradient_x, pt, m_pp);
-			cv::line(m_maskImg, m_pp, dot, m_lineColor, m_l);
+			dot = lineCrossDot(m_gradient_x, pt, m_p[2]);
+			cv::line(m_maskImg, m_p[2], dot, m_lineColor, m_l);
 
-			double length = m_dHeightScale * std::sqrt((m_pp.x - dot.x)*(m_pp.x - dot.x) + (m_pp.y - dot.y)*(m_pp.y - dot.y));
+			double length = m_dHeightScale * std::sqrt((m_p[2].x - dot.x)*(m_p[2].x - dot.x) + (m_p[2].y - dot.y)*(m_p[2].y - dot.y));
 			sprintf_s(log.text, "%.2fmm", length);
-			cv::Point center = cv::Point(m_pp.x + 20, (m_pp.y + pt.y) * 2 / 3);
-			cv::putText(m_maskImg, log.text, cv::Point(m_pp.x + 20, (m_pp.y + pt.y) * 2 / 3), cv::FONT_HERSHEY_COMPLEX, 1.0f,m_lineColor);
+			cv::Point center = cv::Point(m_p[2].x + 20, (m_p[2].y + pt.y) * 2 / 3);
+			cv::putText(m_maskImg, log.text, cv::Point(m_p[2].x + 20, (m_p[2].y + pt.y) * 2 / 3), cv::FONT_HERSHEY_COMPLEX, 1.0f,m_lineColor);
 		
 			m_dLlength = length;
 
 			// 保存标注信息
 			log.center = center; // 保存关键点
 			log.step = m_curStep;
-			log.p1 = m_pp;
+			log.p1 = m_p[2];
 			log.p2 = dot;
 			log.op = DRAW_MEASURE;
 			m_vecLog.push_back(log);
@@ -500,10 +503,10 @@ void CchiropracticDlg::OnLButtonUp(UINT nFlags, CPoint point)
 		// 右高
 		if (m_curStep == 4)
 		{
+			m_p[4] = pt;
 			lineExt(m_gradient_x, pt, 50,m_srcImg.cols - pt.x, m_p1, m_p2);
 			cv::line(m_maskImg, m_p1, m_p2, m_lineColor, m_l);
 
-			m_pp = pt;
 			log.center = pt;
 			log.step = m_curStep;
 			log.p1 = m_p1;
@@ -514,12 +517,13 @@ void CchiropracticDlg::OnLButtonUp(UINT nFlags, CPoint point)
 		// 右底
 		if (m_curStep == 5)  
 		{
+			m_p[5] = pt;
 			lineExt(m_gradient_x, pt, 50, m_srcImg.cols - pt.x, m_p1, m_p2);
 			cv::line(m_maskImg, m_p1, m_p2, m_lineColor, m_l);
 			// 标注
 			cv::Point dot;
-			dot = lineCrossDot(m_gradient_x, pt, m_pp);
-			cv::line(m_maskImg, m_pp, dot, m_lineColor, m_l);
+			dot = lineCrossDot(m_gradient_x, pt, m_p[4]);
+			cv::line(m_maskImg, m_p[4], dot, m_lineColor, m_l);
 			log.center = pt; // 保存关键点
 			log.step = m_curStep;
 			log.p1 = m_p1;
@@ -528,17 +532,17 @@ void CchiropracticDlg::OnLButtonUp(UINT nFlags, CPoint point)
 			m_vecLog.push_back(log);
 
 
-			double length = m_dHeightScale * std::sqrt((m_pp.x - dot.x)*(m_pp.x - dot.x) + (m_pp.y - dot.y)*(m_pp.y - dot.y));
+			double length = m_dHeightScale * std::sqrt((m_p[4].x - dot.x)*(m_p[4].x - dot.x) + (m_p[4].y - dot.y)*(m_p[4].y - dot.y));
 			//cv::circle(m_maskImg, dot, 5, m_lineColor, -1);
 			sprintf_s(log.text, "%.2fmm", length);
-			cv::Point center = cv::Point(m_pp.x - 20, (m_pp.y + pt.y) * 2 / 3);
-			cv::putText(m_maskImg, log.text, cv::Point(m_pp.x - 20, (m_pp.y + pt.y) * 2 / 3), cv::FONT_HERSHEY_COMPLEX, 1.0f, m_lineColor);
+			cv::Point center = cv::Point(m_p[4].x - 20, (m_p[4].y + pt.y) * 2 / 3);
+			cv::putText(m_maskImg, log.text, cv::Point(m_p[4].x - 20, (m_p[4].y + pt.y) * 2 / 3), cv::FONT_HERSHEY_COMPLEX, 1.0f, m_lineColor);
 			m_dRlength = length;
 
 			// 保存标注信息
 			log.center = center; // 保存关键点
 			log.step = m_curStep;
-			log.p1 = m_pp;
+			log.p1 = m_p[4];
 			log.p2 = dot;
 			log.op = DRAW_MEASURE;
 			m_vecLog.push_back(log);
@@ -547,14 +551,14 @@ void CchiropracticDlg::OnLButtonUp(UINT nFlags, CPoint point)
 		// 竖1
 		if (m_curStep == 6)  
 		{
+			m_p[6] = pt;
 			if(m_gradient_y >0)
 				lineExt(m_gradient_y, pt, 50, m_srcImg.rows - pt.y, m_p1, m_p2);
 			else
 				lineExt(m_gradient_y, pt, m_srcImg.rows - pt.y, 50, m_p1, m_p2);
 			cv::line(m_maskImg, m_p1, m_p2, m_lineColor, m_l);
 
-			m_pp = pt;
-			m_pd = pt;		//骶骨中线关键点
+			//m_pd = pt;		//骶骨中线关键点
 			log.center = pt;
 			log.step = m_curStep;
 			log.p1 = m_p1;
@@ -565,6 +569,7 @@ void CchiropracticDlg::OnLButtonUp(UINT nFlags, CPoint point)
 		// 竖2
 		if (m_curStep == 7)  
 		{
+			m_p[7] = pt;
 			if (m_gradient_y >0)
 				lineExt(m_gradient_y, pt, 50, m_srcImg.rows - pt.y, m_p1, m_p2);
 			else
@@ -580,7 +585,7 @@ void CchiropracticDlg::OnLButtonUp(UINT nFlags, CPoint point)
 
 			// 标注
 			cv::Point dot;
-			dot = lineCrossDot(m_gradient_y, m_pp, pt);
+			dot = lineCrossDot(m_gradient_y, m_p[6], pt);
 			cv::circle(m_maskImg, dot, 5, m_lineColor, -1);
 			double length = m_dHeightScale * std::sqrt((pt.x - dot.x)*(pt.x - dot.x) + (pt.y - dot.y)*(pt.y - dot.y));
 			cv::line(m_maskImg, pt, dot, m_lineColor, m_l);
@@ -604,18 +609,18 @@ void CchiropracticDlg::OnLButtonUp(UINT nFlags, CPoint point)
 		// // 8,9 骨盆基准线
 		if (m_curStep == 8)	
 		{
-			m_p1 = pt;
-			m_pp = pt;
+			m_p[8] = pt;
 		}
 		if (m_curStep == 9)	//
 		{
-			m_p2 = pt;
-			m_gradient_x1 = double(m_p1.y - m_p2.y) / (m_p1.x - m_p2.x + 10e-8); // 求斜率
+			m_p[9] = pt;
+			m_gradient_x1 = double(m_p[9].y - m_p[8].y) / (m_p[9].x - m_p[8].x + 10e-8); // 求斜率
 			m_gradient_y1 = -1.0f / (m_gradient_x1 + 10e-8);
 
-			lineExt(m_gradient_x1, pt,m_p1.x, m_srcImg.cols - pt.x, m_p1, m_p2);
-			cv::line(m_maskImg, m_p1, m_p2, m_lineColor, m_l);
-			//m_pp;
+			cv::Point temp;
+			lineExt(m_gradient_x1, m_p[8], m_p[8].x, 0, temp, m_p2);
+			lineExt(m_gradient_x1, m_p[9],0, m_srcImg.cols - pt.x, m_p1, m_p2);
+			cv::line(m_maskImg, temp, m_p2, m_lineColor, m_l);
 			log.step = m_curStep;
 			log.p1 = m_p1;
 			log.p2 = m_p2;
@@ -625,8 +630,9 @@ void CchiropracticDlg::OnLButtonUp(UINT nFlags, CPoint point)
 		//左垂直
 		if (m_curStep == 10)	
 		{
+			m_p[10] = pt;
 			// 求交点		
-			cv::Point dot = lineCrossDot(m_gradient_x1, m_pp, pt);
+			cv::Point dot = lineCrossDot(m_gradient_x1, m_p[9], pt);
 			if (m_gradient_y1 > 0)
 				lineExt(m_gradient_y1, dot, 0, 200, m_p1, m_p2);
 			else
@@ -635,9 +641,9 @@ void CchiropracticDlg::OnLButtonUp(UINT nFlags, CPoint point)
 			cv::line(m_maskImg, m_p1, m_p2, m_lineColor, m_l);
 
 			// 标注
-			m_dLlength1 = m_dHeightScale*std::sqrt((dot.x - m_pd.x)*(dot.x - m_pd.x) + (dot.y - m_pd.y)*(dot.y - m_pd.y));
+			m_dLlength1 = m_dHeightScale*std::sqrt((dot.x - m_p[6].x)*(dot.x - m_p[6].x) + (dot.y - m_p[6].y)*(dot.y - m_p[6].y));
 			sprintf_s(log.text, "%.2fmm", m_dLlength1);
-			cv::Point center = cv::Point((dot.x + m_pd.x)/2, dot.y + 20);
+			cv::Point center = cv::Point((dot.x + m_p[6].x)/2, dot.y + 20);
 			cv::putText(m_maskImg, log.text, center, cv::FONT_HERSHEY_COMPLEX, 1.0f, m_lineColor);
 
 			log.center = center;
@@ -650,8 +656,9 @@ void CchiropracticDlg::OnLButtonUp(UINT nFlags, CPoint point)
 		//右垂直
 		if (m_curStep == 11)	
 		{
+			m_p[11] = pt;
 			// 求交点
-			cv::Point dot = lineCrossDot(m_gradient_x1, m_pp, pt);
+			cv::Point dot = lineCrossDot(m_gradient_x1, m_p[9], pt);
 			if (m_gradient_y1 > 0)
 				lineExt(m_gradient_y1, dot, 0, 200, m_p1, m_p2);
 			else
@@ -663,9 +670,9 @@ void CchiropracticDlg::OnLButtonUp(UINT nFlags, CPoint point)
 			cv::line(m_maskImg, m_p1, m_p2, m_lineColor, m_l);
 
 			// 标注
-			m_dRlength1 = m_dHeightScale*std::sqrt((dot.x - m_pd.x)*(dot.x - m_pd.x) + (dot.y - m_pd.y)*(dot.y - m_pd.y));
+			m_dRlength1 = m_dHeightScale*std::sqrt((dot.x - m_p[6].x)*(dot.x - m_p[6].x) + (dot.y - m_p[6].y)*(dot.y - m_p[6].y));
 			sprintf_s(log.text, "%.2fmm", m_dRlength1);
-			cv::Point center = cv::Point((dot.x + m_pd.x) / 2, dot.y + 20);
+			cv::Point center = cv::Point((dot.x + m_p[6].x) / 2, dot.y + 20);
 			cv::putText(m_maskImg, log.text, center, cv::FONT_HERSHEY_COMPLEX, 1.0f, m_lineColor);
 
 			log.center = center;
