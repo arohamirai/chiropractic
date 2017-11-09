@@ -170,7 +170,7 @@ void CRegisterDlg::OnBnClickedOk()
 	m_machineNumber.MakeLower();
 	for (int i = 0; i<10; i++)
 	{
-		char p = m_machineNumber.GetAt(i);
+		TCHAR p = m_machineNumber.GetAt(i);
 		if (p >= 'a'&&p <= 'f')
 			num = p - 'a' + 10;
 		else

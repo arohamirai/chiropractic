@@ -189,6 +189,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="LoginDlg.h" />
     <ClInclude Include="Register.h" />
     <ClInclude Include="RegisterDlg.h" />
     <ClInclude Include="Resource.h" />
@@ -196,6 +197,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="LoginDlg.cpp" />
     <ClCompile Include="Register.cpp" />
     <ClCompile Include="RegisterDlg.cpp" />
     <ClCompile Include="stdafx.cpp">

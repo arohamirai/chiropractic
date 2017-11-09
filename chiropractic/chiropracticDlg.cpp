@@ -15,6 +15,22 @@
 #include"CvvImage.h"
 #include"InputName.h"
 #include"math.h"
+
+
+#include "dcmtk/config/osconfig.h"    /* make sure OS specific configuration is included first */
+#include "dcmtk/ofstd/ofstdinc.h"
+
+#include "dcmtk/dcmdata/dctk.h"
+#include "dcmtk/dcmdata/cmdlnarg.h"
+#include "dcmtk/ofstd/ofconapp.h"
+#include "dcmtk/dcmdata/dcuid.h"       /* for dcmtk version name */
+#include "dcmtk/dcmjpeg/djdecode.h"    /* for dcmjpeg decoders */
+#include "dcmtk/dcmjpeg/dipijpeg.h"    /* for dcmimage JPEG plugin */
+
+#pragma comment(lib, "ws2_32.lib")
+#pragma comment(lib,"iphlpapi.lib")
+#pragma comment(lib, "netapi32.lib")
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -66,8 +82,21 @@ CchiropracticDlg::CchiropracticDlg(CWnd* pParent /*=NULL*/)
 {
 	m_dWidthScale = 1.0;
 	m_dHeightScale = 1.0;
-	m_l = 1;			// 线宽
-	m_lineColor = cv::Scalar(255,0,0);	// 线的颜色
+	m_lineWidth = 1;			// 线宽
+	m_maskColor = cv::Scalar(255,0,0);	// 线的颜色
+	m_strRemind_gp[0] = _T("第一步:做股骨头线——依次选择两侧股骨头的最高点。");
+	m_strRemind_gp[1] = _T("第二步:测左无名骨长度——依次选择左侧髂嵴的最高点和左侧坐骨的最低点。");
+	m_strRemind_gp[2] = _T("第三步:测右无名骨长度——依次选择右侧髂嵴的最高点和右侧坐骨的最低点。");
+	m_strRemind_gp[3] = _T("第四步:做骶骨中线——选择第一骶骨棘突顶点。");
+	m_strRemind_gp[4] = _T("第五步:做耻骨联合中线——选择耻骨联合中点。");
+	m_strRemind_gp[5] = _T("第六步:做骶骨水平线——依次选择左侧骶沟点与右侧骶沟点。");
+	m_strRemind_gp[6] = _T("第七步:画左侧骶骨水平线的垂直线——选择左侧骶骨最外侧缘的点。");
+	m_strRemind_gp[7] = _T("第八步:画右侧骶骨水平线的垂直线——选择右侧骶骨最外侧缘的点。");
+	m_strRemind_gp[8] = _T("第九步:测量棘突中央到椎体边缘的距离——依次选择棘突中央点、左侧椎体边缘点、右侧椎体边缘点。");
+	m_strRemind_gp[9] = _T("第十步:做股骨头线的平行线——选择较高骶沟点");
+	m_strRemind_gp[10] = _T("第十一步:测量骶骨向下偏位——选择较低骶沟点。");
+	m_strRemind_gp[11] = _T("完成。");
+
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
 
@@ -76,31 +105,35 @@ void CchiropracticDlg::DoDataExchange(CDataExchange* pDX)
 	CDialogEx::DoDataExchange(pDX);
 	DDX_Text(pDX, IDC_EDIT1, m_edit);
 	DDX_Control(pDX, IDC_COMBO1, m_Combo);
+	DDX_Control(pDX, IDC_REMIND1, m_remind1);
 }
 
 BEGIN_MESSAGE_MAP(CchiropracticDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
+	ON_CBN_SELCHANGE(IDC_COMBO1, &CchiropracticDlg::OnCbnSelchangeCombo1)
+	ON_BN_CLICKED(IDC_BUTTON1, &CchiropracticDlg::OnBnClickedButton1)
 	ON_BN_CLICKED(IDC_BUTTON2, &CchiropracticDlg::OnBnClickedButton2)
+	ON_BN_CLICKED(IDC_BUTTON3, &CchiropracticDlg::OnBnClickedButton3)
+	ON_BN_CLICKED(IDC_BUTTON4, &CchiropracticDlg::OnBnClickedButton4)
+	//ON_BN_CLICKED(IDC_BUTTON5, &CchiropracticDlg::OnBnClickedButton5)
+	ON_BN_CLICKED(IDC_BUTTON6, &CchiropracticDlg::OnBnClickedButton6)
+	//ON_BN_CLICKED(IDC_BUTTON7, &CchiropracticDlg::OnBnClickedButton7)
+	ON_BN_CLICKED(IDC_BUTTON8, &CchiropracticDlg::OnBnClickedButton8)
+	ON_BN_CLICKED(IDC_BUTTON9, &CchiropracticDlg::OnBnClickedButton9)
+	ON_BN_CLICKED(IDC_BUTTON10, &CchiropracticDlg::OnBnClickedButton10)
+	ON_BN_CLICKED(IDC_BUTTON11, &CchiropracticDlg::OnBnClickedButton11)
+	//ON_BN_CLICKED(IDC_BUTTON12, &CchiropracticDlg::OnBnClickedButton12)
+	ON_BN_CLICKED(IDC_BUTTON_OP1, &CchiropracticDlg::OnBnClickedButtonOp1)
+	ON_BN_CLICKED(IDC_BUTTON_OP2, &CchiropracticDlg::OnBnClickedButtonOp2)
+	ON_BN_CLICKED(IDC_BUTTON_OP3, &CchiropracticDlg::OnBnClickedButtonOp3)
+	ON_BN_CLICKED(IDC_BUTTON13, &CchiropracticDlg::OnBnClickedButton13)
 	ON_WM_LBUTTONDOWN()
 	ON_WM_MOUSEMOVE()
 	ON_WM_LBUTTONUP()
-	ON_BN_CLICKED(IDC_BUTTON3, &CchiropracticDlg::OnBnClickedButton3)
-	ON_BN_CLICKED(IDC_BUTTON4, &CchiropracticDlg::OnBnClickedButton4)
-	ON_BN_CLICKED(IDC_BUTTON9, &CchiropracticDlg::OnBnClickedButton9)
-	ON_BN_CLICKED(IDC_BUTTON8, &CchiropracticDlg::OnBnClickedButton8)
-	ON_BN_CLICKED(IDC_BUTTON10, &CchiropracticDlg::OnBnClickedButton10)
-	ON_BN_CLICKED(IDC_BUTTON5, &CchiropracticDlg::OnBnClickedButton5)
 	ON_WM_RBUTTONDOWN()
-	ON_BN_CLICKED(IDC_BUTTON7, &CchiropracticDlg::OnBnClickedButton7)
-	ON_BN_CLICKED(IDC_BUTTON1, &CchiropracticDlg::OnBnClickedButton1)
-	ON_BN_CLICKED(IDC_BUTTON6, &CchiropracticDlg::OnBnClickedButton6)
 	ON_WM_MOUSEWHEEL()
-	ON_CBN_SELCHANGE(IDC_COMBO1, &CchiropracticDlg::OnCbnSelchangeCombo1)
-	ON_BN_CLICKED(IDC_BUTTON12, &CchiropracticDlg::OnBnClickedButton12)
-	ON_BN_CLICKED(IDC_BUTTON11, &CchiropracticDlg::OnBnClickedButton11)
-	ON_BN_CLICKED(IDC_BUTTON13, &CchiropracticDlg::OnBnClickedButton13)
 END_MESSAGE_MAP()
 // CchiropracticDlg 消息处理程序
 BOOL CchiropracticDlg::OnInitDialog()
@@ -133,26 +166,7 @@ BOOL CchiropracticDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
 	// TODO: 在此添加额外的初始化代码
-	m_zoom = 1.0f;
-
-	m_imgX = 0.0f;
-	m_imgY = 0.0f;
-	m_PtStart.X = 0.0f;
-	m_PtStart.Y = 0.0f;
-
-	m_bLButtonDown = false;
-	GetDlgItem(IDC_PICTURE)->SetWindowPos(NULL, 0, 0, m_ctrlWidth, m_ctrlHeight, SWP_NOMOVE); //固定大小的窗口
-	
-	// 尺寸
-	m_Combo.AddString(_T("尺寸"));
-	m_Combo.AddString(_T("14x17"));
-	m_Combo.AddString(_T("7x8.5"));
-	int nIndex = m_Combo.FindStringExact(0, _T("尺寸"));
-	if(nIndex != CB_ERR)
-		m_Combo.SetCurSel(nIndex);
-
-	
-
+	initParam();
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 void CchiropracticDlg::OnSysCommand(UINT nID, LPARAM lParam)
@@ -210,10 +224,10 @@ void CchiropracticDlg::OnBnClickedButton2()
 	// TODO: 在此添加控件通知处理程序代码
 
 	CFileDialog dlg(
-		TRUE, _T("*.bmp|*.jpeg"),
+		TRUE, NULL,//_T("*.bmp|*.jpeg"),
 		NULL,
 		OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_HIDEREADONLY,
-		_T("image files (*.bmp; *.jpg;*.png) |*.bmp; *.jpg;*.jpeg;*.jge;*.png; ||"),
+		NULL,//_T("image files (*.bmp; *.jpg;*.png) |*.bmp; *.jpg;*.jpeg;*.jge;*.png; ||"),
 		NULL
 	);                                        // 选项图片的约定
 	dlg.m_ofn.lpstrTitle = _T("Open Image");    // 打开文件对话框的标题名
@@ -221,25 +235,46 @@ void CchiropracticDlg::OnBnClickedButton2()
 		return;
 
 	CString mPath = dlg.GetPathName();            // 获取图片路径
-	int len = WideCharToMultiByte(CP_ACP, 0, mPath, -1, NULL, 0, NULL, NULL);
+	
+	/*int len = WideCharToMultiByte(CP_ACP, 0, mPath, -1, NULL, 0, NULL, NULL);
 	char *ptxtTemp = new char[len + 1];
-	WideCharToMultiByte(CP_ACP, 0, mPath, -1, ptxtTemp, len, NULL, NULL);
-
-	m_loadImg = imread(ptxtTemp, CV_LOAD_IMAGE_UNCHANGED);    // 读取图片
-	delete[] ptxtTemp;
+	WideCharToMultiByte(CP_ACP, 0, mPath, -1, ptxtTemp, len, NULL, NULL);*/
+	char *ptxtTemp = mPath.GetBuffer(mPath.GetLength()); //文件完整路径
+	CString fileExt = dlg.GetFileExt();// 文件后缀名
+	if (fileExt == _T("png") || fileExt == _T("jpg") || fileExt == _T("bmp"))
+	{
+		m_loadImg = imread(ptxtTemp, CV_LOAD_IMAGE_UNCHANGED);    // 读取图片
+	}
+	else
+	{
+		bool ret = dcm2Mat(ptxtTemp, m_loadImg);
+		if (!ret)
+		{
+			MessageBox(_T("载入图像失败，请检查文件的合法性！"));
+			return;
+		}
+	}
+	//delete[] ptxtTemp;
 
 	if (m_loadImg.empty())                                    // 判断是否成功载入图片
 		return;
 	m_srcImg = m_loadImg.clone(); // 为什么这么用，看头文件
 	m_zoomImg = m_loadImg.clone();
-	//m_showImg = m_srcImg.clone();
 	
-
 	m_maskImg.create(m_srcImg.size(), CV_8UC1); // 掩膜图像
 	m_maskShowImg.create(m_srcImg.size(), CV_8UC1); // 内部temp掩膜图像
 	m_maskImg.setTo(0);
 	m_maskShowImg.setTo(0);
 	Invalidate();
+
+	// 默认载入17*14图像
+	double w, h; //实际尺寸(mm或英寸)
+	w = 17 * 25.4;
+	h = 14 * 25.4;
+	m_dWidthScale = w / m_srcImg.cols;
+	m_dHeightScale = h / m_srcImg.rows;
+	m_remind1.SetWindowText(_T("请选择操作类型！"));
+
 }
 bool CchiropracticDlg::intersect(CvPoint aa, CvPoint bb, CvPoint cc, CvPoint dd)
 {
@@ -268,16 +303,29 @@ double CchiropracticDlg::determinant(double v1, double v2, double v3, double v4)
 void CchiropracticDlg::OnBnClickedButton3()
 {
 	// TODO: 在此添加控件通知处理程序代码
+	if (m_srcImg.empty())
+	{
+		MessageBox(_T("请先载入图像！"));
+		return;
+	}
+		
 	OnRButtonDown(NULL, NULL);
-	m_bDrawRect = true;
+	m_opType = DRAW_RECT;
+	//m_bDrawRect = true;
 	return;
 }
 // 画线
 void CchiropracticDlg::OnBnClickedButton4()
 {
 	// TODO: 在此添加控件通知处理程序代码
+	if (m_srcImg.empty())
+	{
+		MessageBox(_T("请先载入图像！"));
+		return;
+	}
 	OnRButtonDown(NULL, NULL);
-	m_bDrawLine = true;
+	//m_bDrawLine = true;
+	//remindColor();
 	return;
 }
 // 清屏
@@ -292,23 +340,12 @@ void CchiropracticDlg::OnBnClickedButton10()
 	m_curStep = 0;
 	Invalidate();
 }
-// 删除
-void CchiropracticDlg::OnBnClickedButton5()
-{
-	OnRButtonDown(NULL,NULL);
-	// TODO: 在此添加控件通知处理程序代码
-}// 右键取消
+// 右键取消
 void CchiropracticDlg::OnRButtonDown(UINT nFlags, CPoint point)
 {
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
-	m_bDrawLine = false;
-	m_bDrawRect = false;
+	m_opType = -1;
 	CDialogEx::OnRButtonDown(nFlags, point);
-}
-void CchiropracticDlg::OnBnClickedButton7()
-{
-	// TODO: 在此添加控件通知处理程序代码
-	OnRButtonDown(NULL, NULL);
 }
 // 更换图片
 void CchiropracticDlg::OnBnClickedButton1()
@@ -325,11 +362,11 @@ void CchiropracticDlg::OnBnClickedButton1()
 	INT_PTR ret = dlg.DoModal();
 	if (ret != IDOK)
 		return;
-	m_dWidth = dlg.m_dWidth;
-	m_dHeight = dlg.m_dHeight;
+	int w = dlg.m_dWidth;
+	int h = dlg.m_dHeight;
 
-	m_dWidthScale = m_dWidth / m_srcImg.cols;
-	m_dHeightScale = m_dHeight / m_srcImg.rows;
+	m_dWidthScale = w / m_srcImg.cols;
+	m_dHeightScale = h / m_srcImg.rows;
 	return;
 }
 void CchiropracticDlg::OnBnClickedButton6()
@@ -347,8 +384,8 @@ void CchiropracticDlg::OnLButtonDown(UINT nFlags, CPoint point)//这些坐标总
 	CRect rect;
 	GetDlgItem(IDC_PICTURE)->GetWindowRect(rect);
 	ScreenToClient(&rect);
-
-	if (m_bLButtonDown &&m_bDrawRect)
+	// 截图模式，记录下初始点
+	if (m_opType == DRAW_RECT)
 	{
 		m_p1.x = point.x - rect.left;
 		m_p1.y = point.y - rect.top;
@@ -356,7 +393,7 @@ void CchiropracticDlg::OnLButtonDown(UINT nFlags, CPoint point)//这些坐标总
 		m_p1.x = m_p1.x / m_zoom - m_imgX;
 		m_p1.y = m_p1.y / m_zoom - m_imgY;
 	}
-if (nFlags & MK_LBUTTON && !m_bDrawRect && !m_bDrawLine)
+	if (nFlags & MK_LBUTTON && (m_opType == -1))
 	{
 			m_mouseDown.X = point.x;
 			m_mouseDown.Y = point.y;
@@ -388,21 +425,30 @@ void CchiropracticDlg::OnMouseMove(UINT nFlags, CPoint point)
 	pt.y = pt.y / m_zoom - m_imgY;
 	m_maskImg.copyTo(m_maskShowImg);// 将已完成的步骤载入
 
-	if (m_bDrawLine)
-	{
-		if (m_curStep == 1 || m_curStep == 9)
-		{
-			cv::line(m_maskShowImg, m_p[m_curStep - 1], pt, m_lineColor, m_l);
-		}
-	
-	}
-	if (m_bDrawRect && m_bLButtonDown)		//区域选择
+	if ((m_opType == DRAW_RECT) && m_bLButtonDown)		//区域选择
 	{
 		int r = 1;
 		cv::rectangle(m_maskShowImg, m_p1, pt, cv::Scalar(255), r);
 		Invalidate();
+	} 
+	else if (m_opType == DIAG_QIAGU)
+	{
+		cv::circle(m_maskShowImg, pt, 3, m_maskColor, -1);
+		if (m_curStep == 1)
+		{
+			cv::line(m_maskShowImg, m_gp[0], pt, m_maskColor, m_lineWidth);
+		}
 	}
-	if (nFlags && MK_LBUTTON && !m_bDrawLine && !m_bDrawRect)	// 移动模式
+	else if (m_opType == DIAG_DIGU)
+	{
+		cv::circle(m_maskShowImg, pt, 3, m_maskColor, -1);
+		if (m_curStep == 1)
+		{
+			cv::line(m_maskShowImg, m_gp[0], pt, m_maskColor, m_lineWidth);
+		}
+	}
+	// 无操作，移动模式
+	else if (nFlags && MK_LBUTTON  && (m_opType == -1))
 	{
 		REAL deltaX = point.x - m_mouseDown.X; //x轴方向偏移
 		REAL deltaY = point.y - m_mouseDown.Y; //y轴方向偏移
@@ -427,310 +473,534 @@ void CchiropracticDlg::OnLButtonUp(UINT nFlags, CPoint point)
 	// 变换到原图坐标
 	pt.x = pt.x / m_zoom - m_imgX;
 	pt.y = pt.y / m_zoom - m_imgY;
+	if (m_opType == DRAW_RECT)
+	{
 
-	logInfo log = {0};    // 写入日志
-	if (m_bDrawLine)
+	}
+//===============================================================================================================
+	// 一、髂骨半脱位
+	else if (m_opType == DIAG_QIAGU && m_curStep < 10) // 操作从0到9
 	{
 		// 0、1 基准线
 		if (m_curStep == 0)
 		{
-			// 计算斜率
-			//m_p1 = pt;
-			m_p[0] = pt;
+			m_gp[0] = pt;
+			cv::circle(m_maskImg, pt, m_circleRadius, m_maskColor, -1);
 		}
 		if (m_curStep == 1)
 		{
-			m_p[1] = pt;
-			//m_p2 = pt;
-			m_gradient_x = double(m_p[0].y - m_p[1].y) / (m_p[0].x - m_p[1].x + 10e-8); // 求斜率
-			m_gradient_y = -1.0f / (m_gradient_x + 10e-8);
-			cv::line(m_maskImg, m_p[0], m_p[1], m_lineColor, m_l);
+			m_gp[1] = pt;
+			cv::circle(m_maskImg, pt, m_circleRadius, m_maskColor, -1);
 
-			log.step = m_curStep;
-			log.p1 = m_p[0];
-			log.p2 = m_p[1];
+			m_grad_gugu_x = double(m_gp[0].y - m_gp[1].y) / (m_gp[0].x - m_gp[1].x + 10e-8); // 求斜率
+			m_grad_gugu_y = -1.0f / (m_grad_gugu_x + 10e-8);
+			cv::line(m_maskImg, m_gp[0], m_gp[1], m_maskColor, m_lineWidth);
+
+			logInfo log = { 0 };    // 写入日志
+			log.p[0] = m_gp[0];
+			log.p[1] = m_gp[1];
 			log.op = DRAW_LINE;
+			log.step = m_curStep;
 			m_vecLog.push_back(log);
 		}
 		// 左高
-		if (m_curStep == 2)	
+		if (m_curStep == 2)
 		{
-			m_p[2] = pt;
-			lineExt(m_gradient_x, pt, pt.x, 50 ,m_p1, m_p2);  // 左边
-			cv::line(m_maskImg, m_p1, m_p2, m_lineColor, m_l);
+			m_gp[2] = pt;
+			cv::circle(m_maskImg, pt, m_circleRadius, m_maskColor, -1);
 
-			log.center = pt; // 保存关键点
-			log.step = m_curStep;
-			log.p1 = m_p1;
-			log.p2 = m_p2;
+			lineExt(m_grad_gugu_x, pt, pt.x, (m_srcImg.cols/2 - pt.x)/2, m_p1, m_p2);  // 左边
+			cv::line(m_maskImg, m_p1, m_p2, m_maskColor, m_lineWidth);
+
+			logInfo log = { 0 };    // 写入日志
+			log.p[0] = m_p1;
+			log.p[1] = m_p2;
+			log.center[0] = m_gp[2]; // 保存关键点
 			log.op = DRAW_LINE;
+			log.step = m_curStep;
 			m_vecLog.push_back(log);
 		}
 		// 左底
-		if (m_curStep == 3)	
+		if (m_curStep == 3)
 		{
-			m_p[3] = pt;
-			lineExt(m_gradient_x, pt, pt.x, 50, m_p1, m_p2);
-			cv::line(m_maskImg, m_p1, m_p2, m_lineColor, m_l);
+			m_gp[3] = pt;
+			cv::circle(m_maskImg, pt, m_circleRadius, m_maskColor, -1);
 
-			log.center = pt; // 保存关键点
-			log.step = m_curStep;
-			log.p1 = m_p1;
-			log.p2 = m_p2;
-			log.op = DRAW_LINE;
-			m_vecLog.push_back(log);
+			lineExt(m_grad_gugu_x, pt, pt.x, (m_srcImg.cols / 2 - pt.x) / 2, m_p1, m_p2);
+			cv::line(m_maskImg, m_p1, m_p2, m_maskColor, m_lineWidth);
 
-			// 标注
+			logInfo log = { 0 };    // 写入日志
+			// 求交点
 			cv::Point dot;
-			dot = lineCrossDot(m_gradient_x, pt, m_p[2]);
-			cv::line(m_maskImg, m_p[2], dot, m_lineColor, m_l);
+			dot = lineCrossDot(m_grad_gugu_x, pt, m_gp[2]);   // 直线外点与直线的交点
+			cv::line(m_maskImg, m_gp[2], dot, m_maskColor, m_lineWidth);
+			// 计算测量长度
+			double length = m_dHeightScale * std::sqrt((m_gp[2].x - dot.x)*(m_gp[2].x - dot.x) + (m_gp[2].y - dot.y)*(m_gp[2].y - dot.y));
+			// 保存测量结果
+			sprintf_s(log.text, "%.1fmm", length);
+			// 显示测量结果
+			cv::Point center = cv::Point(m_gp[2].x, (m_gp[2].y + pt.y) * 2 / 3);
+			cv::putText(m_maskImg, log.text, center, m_fontTypeOfMeasure, m_dFontSizeOfMeasure, m_maskColor,m_fontThicknessOfMeasure);
 
-			double length = m_dHeightScale * std::sqrt((m_p[2].x - dot.x)*(m_p[2].x - dot.x) + (m_p[2].y - dot.y)*(m_p[2].y - dot.y));
-			sprintf_s(log.text, "%.2fmm", length);
-			cv::Point center = cv::Point(m_p[2].x + 20, (m_p[2].y + pt.y) * 2 / 3);
-			cv::putText(m_maskImg, log.text, cv::Point(m_p[2].x + 20, (m_p[2].y + pt.y) * 2 / 3), cv::FONT_HERSHEY_COMPLEX, 1.0f,m_lineColor);
-		
-			m_dLlength = length;
+			m_dLlength_wuminggu = length;
 
 			// 保存标注信息
-			log.center = center; // 保存关键点
+			// p[0~1] 正常直线，p[2~3]测量线
+			// center[0] 画直线时所取关键点，center[1] 测量线文字放置位置
+			log.p[0] = m_p1;
+			log.p[1] = m_p2;
+			log.p[2] = m_gp[2];
+			log.p[3] = dot;
+			log.center[0] = m_gp[3]; // 保存关键点
+			log.center[1] = center; // 保存关键点
+			log.length = length;
+			log.op = DRAW_LINE_MEASURE;
 			log.step = m_curStep;
-			log.p1 = m_p[2];
-			log.p2 = dot;
-			log.op = DRAW_MEASURE;
 			m_vecLog.push_back(log);
 		}
 		// 右高
 		if (m_curStep == 4)
 		{
-			m_p[4] = pt;
-			lineExt(m_gradient_x, pt, 50,m_srcImg.cols - pt.x, m_p1, m_p2);
-			cv::line(m_maskImg, m_p1, m_p2, m_lineColor, m_l);
+			m_gp[4] = pt;
+			cv::circle(m_maskImg, pt, m_circleRadius, m_maskColor, -1);
 
-			log.center = pt;
-			log.step = m_curStep;
-			log.p1 = m_p1;
-			log.p2 = m_p2;
+			lineExt(m_grad_gugu_x, pt, (pt.x - m_srcImg.cols / 2) / 2, m_srcImg.cols - pt.x, m_p1, m_p2);
+			cv::line(m_maskImg, m_p1, m_p2, m_maskColor, m_lineWidth);
+
+			logInfo log = { 0 };    // 写入日志
+			log.p[0] = m_p1;
+			log.p[1] = m_p2;
+			log.center[0] = m_gp[4];
 			log.op = DRAW_LINE;
-			m_vecLog.push_back(log);
-		}
+			log.step = m_curStep;
+			m_vecLog.push_back(log);}
 		// 右底
-		if (m_curStep == 5)  
+		if (m_curStep == 5)
 		{
-			m_p[5] = pt;
-			lineExt(m_gradient_x, pt, 50, m_srcImg.cols - pt.x, m_p1, m_p2);
-			cv::line(m_maskImg, m_p1, m_p2, m_lineColor, m_l);
+			m_gp[5] = pt;
+			cv::circle(m_maskImg, pt, m_circleRadius, m_maskColor, -1);
+
+			lineExt(m_grad_gugu_x, pt, (pt.x - m_srcImg.cols / 2) / 2, m_srcImg.cols - pt.x, m_p1, m_p2);
+			cv::line(m_maskImg, m_p1, m_p2, m_maskColor, m_lineWidth);
+
+			logInfo log = { 0 };    // 写入日志
 			// 标注
 			cv::Point dot;
-			dot = lineCrossDot(m_gradient_x, pt, m_p[4]);
-			cv::line(m_maskImg, m_p[4], dot, m_lineColor, m_l);
-			log.center = pt; // 保存关键点
-			log.step = m_curStep;
-			log.p1 = m_p1;
-			log.p2 = m_p2;
-			log.op = DRAW_LINE;
-			m_vecLog.push_back(log);
+			dot = lineCrossDot(m_grad_gugu_x, pt, m_gp[4]);
+			cv::line(m_maskImg, m_gp[4], dot, m_maskColor, m_lineWidth);
 
-
-			double length = m_dHeightScale * std::sqrt((m_p[4].x - dot.x)*(m_p[4].x - dot.x) + (m_p[4].y - dot.y)*(m_p[4].y - dot.y));
-			//cv::circle(m_maskImg, dot, 5, m_lineColor, -1);
-			sprintf_s(log.text, "%.2fmm", length);
-			cv::Point center = cv::Point(m_p[4].x - 20, (m_p[4].y + pt.y) * 2 / 3);
-			cv::putText(m_maskImg, log.text, cv::Point(m_p[4].x - 20, (m_p[4].y + pt.y) * 2 / 3), cv::FONT_HERSHEY_COMPLEX, 1.0f, m_lineColor);
-			m_dRlength = length;
+			double length = m_dHeightScale * std::sqrt((m_gp[4].x - dot.x)*(m_gp[4].x - dot.x) + (m_gp[4].y - dot.y)*(m_gp[4].y - dot.y));
+			sprintf_s(log.text, "%.1fmm", length);
+			cv::Point center = cv::Point(m_gp[4].x, (m_gp[4].y + pt.y) * 2 / 3);
+			cv::putText(m_maskImg, log.text, center, m_fontTypeOfMeasure, m_dFontSizeOfMeasure, m_maskColor, m_fontThicknessOfMeasure);
+			m_dRlength_wuminggu = length;
 
 			// 保存标注信息
-			log.center = center; // 保存关键点
+			// p[0~1] 正常直线，p[2~3]测量线
+			// center[0] 画直线时所取关键点，center[1] 测量线文字放置位置
+			log.p[0] = m_p1;
+			log.p[1] = m_p2;
+			log.p[2] = m_gp[4];
+			log.p[3] = dot;
+			log.center[0] = m_gp[5]; // 保存关键点
+			log.center[1] = center; // 保存关键点
+			log.length = length;
+			log.op = DRAW_LINE_MEASURE;
 			log.step = m_curStep;
-			log.p1 = m_p[4];
-			log.p2 = dot;
-			log.op = DRAW_MEASURE;
 			m_vecLog.push_back(log);
-
 		}
 		// 竖1
-		if (m_curStep == 6)  
+		if (m_curStep == 6)
 		{
-			m_p[6] = pt;
-			if(m_gradient_y >0)
-				lineExt(m_gradient_y, pt, 50, m_srcImg.rows - pt.y, m_p1, m_p2);
-			else
-				lineExt(m_gradient_y, pt, m_srcImg.rows - pt.y, 50, m_p1, m_p2);
-			cv::line(m_maskImg, m_p1, m_p2, m_lineColor, m_l);
+			m_gp[6] = pt;
+			cv::circle(m_maskImg, pt, m_circleRadius, m_maskColor, -1);
 
-			//m_pd = pt;		//骶骨中线关键点
-			log.center = pt;
-			log.step = m_curStep;
-			log.p1 = m_p1;
-			log.p2 = m_p2;
+			if (m_grad_gugu_y >0)
+				lineExt(m_grad_gugu_y, pt, m_srcImg.rows / 20, m_srcImg.rows - pt.y, m_p1, m_p2);
+			else
+				lineExt(m_grad_gugu_y, pt, m_srcImg.rows - pt.y, m_srcImg.rows / 20, m_p1, m_p2);
+			cv::line(m_maskImg, m_p1, m_p2, m_maskColor, m_lineWidth);
+
+			logInfo log = { 0 };    // 写入日志
+			log.p[0] = m_p1;
+			log.p[1] = m_p2;
+			log.center[0] = m_gp[6];
 			log.op = DRAW_LINE;
+			log.step = m_curStep;
 			m_vecLog.push_back(log);
 		}
 		// 竖2
-		if (m_curStep == 7)  
+		if (m_curStep == 7)
 		{
-			m_p[7] = pt;
-			if (m_gradient_y >0)
-				lineExt(m_gradient_y, pt, 50, m_srcImg.rows - pt.y, m_p1, m_p2);
+			m_gp[7] = pt;
+			cv::circle(m_maskImg, pt, m_circleRadius, m_maskColor, -1);
+
+			if (m_grad_gugu_y >0)
+				lineExt(m_grad_gugu_y, pt, m_srcImg.rows/20, m_srcImg.rows - pt.y, m_p1, m_p2);
 			else
-				lineExt(m_gradient_y, pt, m_srcImg.rows - pt.y, 50, m_p1, m_p2);
-			cv::line(m_maskImg, m_p1, m_p2, m_lineColor, m_l);
+				lineExt(m_grad_gugu_y, pt, m_srcImg.rows - pt.y, m_srcImg.rows / 20, m_p1, m_p2);
+			cv::line(m_maskImg, m_p1, m_p2, m_maskColor, m_lineWidth);
 
-			log.center = pt;
-			log.step = m_curStep;
-			log.p1 = m_p1;
-			log.p2 = m_p2;
-			log.op = DRAW_LINE;
-			m_vecLog.push_back(log);
-
+			logInfo log = { 0 };    // 写入日志
 			// 标注
 			cv::Point dot;
-			dot = lineCrossDot(m_gradient_y, m_p[6], pt);
-			cv::circle(m_maskImg, dot, 5, m_lineColor, -1);
+			dot = lineCrossDot(m_grad_gugu_y, m_gp[6], pt);
 			double length = m_dHeightScale * std::sqrt((pt.x - dot.x)*(pt.x - dot.x) + (pt.y - dot.y)*(pt.y - dot.y));
-			cv::line(m_maskImg, pt, dot, m_lineColor, m_l);
+			cv::line(m_maskImg, pt, dot, m_maskColor, m_lineWidth);
 
-			sprintf_s(log.text, "%.2fmm", length);
-			cv::Point center = cv::Point(pt.x + 20, pt.y);
-			cv::putText(m_maskImg, log.text, cv::Point(pt.x + 20, pt.y), cv::FONT_HERSHEY_COMPLEX, 1.0f, m_lineColor);
-			
-			if(pt.x < dot.x)
-				m_dLength = 0-length;
+			sprintf_s(log.text, "%.1fmm", length);
+			cv::Point center = cv::Point(pt.x + 2* length, pt.y);
+			cv::putText(m_maskImg, log.text, center, m_fontTypeOfMeasure, m_dFontSizeOfMeasure, m_maskColor, m_fontThicknessOfMeasure);
+
+			if (pt.x < dot.x)
+				m_dLength = 0 - length;
 			else
 				m_dLength = length;
 			// 保存标注信息
-			log.center = center; // 保存关键点
+			// p[0~1] 正常直线，p[2~3]测量线
+			// center[0] 画直线时所取关键点，center[1] 测量线文字放置位置
+			log.p[0] = m_p1;
+			log.p[1] = m_p2;
+			log.p[2] = m_gp[7];
+			log.p[3] = dot;
+			log.center[0] = m_gp[7];
+			log.center[1] = center; // 保存关键点
+			log.length = length;
+			log.op = DRAW_LINE_MEASURE;
 			log.step = m_curStep;
-			log.p1 = pt;
-			log.p2 = dot;
-			log.op = DRAW_MEASURE;
 			m_vecLog.push_back(log);
 		}
-		// // 8,9 骨盆基准线
-		if (m_curStep == 8)	
+		// 8、9 判断原发侧
+		if (m_curStep == 8)
 		{
-			m_p[8] = pt;
-		}
-		if (m_curStep == 9)	//
-		{
-			m_p[9] = pt;
-			m_gradient_x1 = double(m_p[9].y - m_p[8].y) / (m_p[9].x - m_p[8].x + 10e-8); // 求斜率
-			m_gradient_y1 = -1.0f / (m_gradient_x1 + 10e-8);
-
-			cv::Point temp;
-			lineExt(m_gradient_x1, m_p[8], m_p[8].x, 0, temp, m_p2);
-			lineExt(m_gradient_x1, m_p[9],0, m_srcImg.cols - pt.x, m_p1, m_p2);
-			cv::line(m_maskImg, temp, m_p2, m_lineColor, m_l);
+			m_gp[8] = pt;
+			cv::circle(m_maskImg, pt, m_circleRadius, m_circleColor, -1);
+			// 保存操作
+			logInfo log = { 0 };
+			log.center[1] = m_gp[8];
+			log.op = DRAW_CIRCLE;
 			log.step = m_curStep;
-			log.p1 = m_p1;
-			log.p2 = m_p2;
-			log.op = DRAW_LINE;
 			m_vecLog.push_back(log);
 		}
-		//左垂直
-		if (m_curStep == 10)	
+		if (m_curStep == 9)
 		{
-			m_p[10] = pt;
-			// 求交点		
-			cv::Point dot = lineCrossDot(m_gradient_x1, m_p[9], pt);
-			if (m_gradient_y1 > 0)
-				lineExt(m_gradient_y1, dot, 0, 200, m_p1, m_p2);
-			else
-				lineExt(m_gradient_y1, dot, 200, 0, m_p1, m_p2);
-			cv::circle(m_maskImg, dot, 5, m_lineColor, -1);
-			cv::line(m_maskImg, m_p1, m_p2, m_lineColor, m_l);
+			m_gp[9] = pt;
+			cv::circle(m_maskImg, pt, m_circleRadius, m_maskColor, -1);
 
-			// 标注
-			m_dLlength1 = m_dHeightScale*std::sqrt((dot.x - m_p[6].x)*(dot.x - m_p[6].x) + (dot.y - m_p[6].y)*(dot.y - m_p[6].y));
-			sprintf_s(log.text, "%.2fmm", m_dLlength1);
-			cv::Point center = cv::Point((dot.x + m_p[6].x)/2, dot.y + 20);
-			cv::putText(m_maskImg, log.text, center, cv::FONT_HERSHEY_COMPLEX, 1.0f, m_lineColor);
-
-			log.center = center;
+			// 保存操作
+			logInfo log = { 0 };
+			log.center[1] = pt;
+			log.op = DRAW_CIRCLE;
 			log.step = m_curStep;
-			log.p1 = m_p1;
-			log.p2 = m_p2;
-			log.op = DRAW_MEASURE;
-			m_vecLog.push_back(log);
-		}
-		//右垂直
-		if (m_curStep == 11)	
-		{
-			m_p[11] = pt;
-			// 求交点
-			cv::Point dot = lineCrossDot(m_gradient_x1, m_p[9], pt);
-			if (m_gradient_y1 > 0)
-				lineExt(m_gradient_y1, dot, 0, 200, m_p1, m_p2);
-			else
-				lineExt(m_gradient_y1, dot, 200, 0, m_p1, m_p2);
-			cv::circle(m_maskImg, dot, 5, m_lineColor, -1);
-			cv::line(m_maskImg, m_p1, m_p2, m_lineColor, m_l);
-		
-			//cv::circle(m_maskImg, pt, 3, m_lineColor, -1);
-			cv::line(m_maskImg, m_p1, m_p2, m_lineColor, m_l);
-
-			// 标注
-			m_dRlength1 = m_dHeightScale*std::sqrt((dot.x - m_p[6].x)*(dot.x - m_p[6].x) + (dot.y - m_p[6].y)*(dot.y - m_p[6].y));
-			sprintf_s(log.text, "%.2fmm", m_dRlength1);
-			cv::Point center = cv::Point((dot.x + m_p[6].x) / 2, dot.y + 20);
-			cv::putText(m_maskImg, log.text, center, cv::FONT_HERSHEY_COMPLEX, 1.0f, m_lineColor);
-
-			log.center = center;
-			log.step = m_curStep;
-			log.p1 = m_p1;
-			log.p2 = m_p2;
-			log.op = DRAW_MEASURE;
 			m_vecLog.push_back(log);
 
-			// 标注结果
-			m_result = "";
-			CString result = _T("");
-			if (m_dLlength < m_dRlength)
-			{
-				result.Format(_T("PI%d"), int(abs(m_dLlength - m_dRlength)));
-			}
-			else
-			{
-				result.Format(_T("AS%d"), int(abs(m_dLlength - m_dRlength)));
-			}
-			if (m_dLength > 0)
-			{
-				CString str;
-				str.Format(_T("Ex%d"), int(std::abs(m_dLength)));
-				result += str;
-			}
-			else
-			{
-				CString str;
-				str.Format(_T("In%d"), int(std::abs(m_dLength)));
-				result += str;
-			}
-			m_result = WChar2Ansi(result.GetBuffer(result.GetLength()));
-			cv::putText(m_maskImg, m_result, cv::Point(100, 100), cv::FONT_HERSHEY_COMPLEX, 1, m_lineColor);
-
-			OnRButtonDown(NULL,NULL); // 结束，取消所有标志位
+			// 进行诊断
+			cv::Point pose;
+			m_qiagu_diagnose = diagnose(DIAG_QIAGU,pose);
+			// 放置诊断结果
+			cv::putText(m_maskImg, m_qiagu_diagnose.GetBuffer(), pose, m_fontTypeOfDiagnose, m_dFontSizeOfDiagnose, m_maskColor);
+			// 保存诊断结果
+			memset(&log, 0, sizeof(log));
+			// 保存诊断放置位置
+			log.center[1] = pose;
+			memcpy(log.text, m_qiagu_diagnose.GetBuffer(), m_qiagu_diagnose.GetLength() + 1);
+			log.op = DRAW_DIAGNOSE;
+			log.step = m_curStep;
+			m_vecLog.push_back(log);
+			// 取消所有勾选操作
+			//OnRButtonDown(NULL, NULL);
 		}
 
-		m_curStep += 1;			// 步骤自增
-		// 有新操作就不能再返回下一步了	
-		cv::vector<logInfo>().swap(m_vecDelLog);		
-	}
-	if (m_bDrawRect)			// 选取模式
+		++m_curStep;
+	} /* 一、髂骨半脱位 */
+//===============================================================================================================
+	// 二、 骶骨半脱位
+	else if (m_opType == DIAG_DIGU && m_curStep < 9)	// 操作从0到8
 	{
-		cv::Rect rect;
-		rect.x = m_p1.x;
-		rect.y = m_p1.y;
-		rect.width = pt.x - m_p1.x;
-		rect.height = pt.y - m_p1.y;
+		// 0、1股骨头线
+		if (m_curStep == 0)
+		{
+			m_gp[0] = pt;
+			cv::circle(m_maskImg, pt, m_circleRadius, m_maskColor, -1);
+		}
+		else if (m_curStep == 1)
+		{
+			m_gp[1] = pt;
+			cv::circle(m_maskImg, pt, m_circleRadius, m_maskColor, -1);
 
-		m_srcImg(rect).copyTo(m_srcImg);   // 获取选取区域
-		resize(m_maskImg, m_maskImg, m_srcImg.size());
-		m_maskImg.setTo(0);
-		resize(m_maskShowImg, m_maskShowImg, m_maskImg.size());
-		m_maskShowImg.setTo(0);
-		m_bDrawRect = false;
-	}
+			m_grad_gugu_x = double(m_gp[0].y - m_gp[1].y) / (m_gp[0].x - m_gp[1].x + 10e-8); // 求斜率
+			m_grad_gugu_y = -1.0f / (m_grad_gugu_x + 10e-8);
+			// 画出股骨头线
+			cv::line(m_maskImg, m_gp[0], m_gp[1], m_maskColor, m_lineWidth);
+			// 写入操作
+			logInfo log = { 0 };   
+			log.p[0] = m_gp[0];
+			log.p[1] = m_gp[1];
+			log.op = DRAW_LINE;
+			log.step = m_curStep;
+			m_vecLog.push_back(log);
+		}
+		// 2 股骨头线垂直线
+		else if (m_curStep == 2)
+		{
+			m_gp[2] = pt;
+			cv::circle(m_maskImg, pt, m_circleRadius, m_maskColor, -1);
+			//求延长线
+			if (m_grad_gugu_y >0)
+				lineExt(m_grad_gugu_y, pt, m_srcImg.rows / 20, m_srcImg.rows - pt.y, m_p1, m_p2);
+			else
+				lineExt(m_grad_gugu_y, pt, m_srcImg.rows - pt.y, m_srcImg.rows / 20, m_p1, m_p2);
+			// 画出股骨头线垂直线
+			cv::line(m_maskImg, m_p1, m_p2, m_maskColor, m_lineWidth);
+			//写入操作
+			logInfo log = { 0 };
+			log.p[0] = m_p1;
+			log.p[1] = m_p2;
+			log.center[0] = m_gp[2];
+			log.op = DRAW_LINE;
+			log.step = m_curStep;
+			m_vecLog.push_back(log);
+		}
+		// 3、4骶骨水平线
+		else if (m_curStep == 3)
+		{
+			m_gp[3] = pt;
+			cv::circle(m_maskImg, pt, m_circleRadius, m_maskColor, -1);
+		}
+		else if (m_curStep == 4)   // 此处要画四条线
+		{
+			// P[0~1]骶骨水平线，p[2~3] 骶骨水平线垂线，p[4~5] 过较高骶沟点做股骨头水平线的平行线， p[6~7] 过较低骶沟点与p[4~5]垂直的线
+			// center[0~1] P[0~1]的关键点，center[2] 向下偏拉距离文字放置位置
+			logInfo log = { 0 };    
+			m_gp[4] = pt;
+			m_grad_digu_x = double(m_gp[4].y - m_gp[3].y) / (m_gp[4].x - m_gp[3].x + 10e-8); // 求斜率
+			m_grad_digu_y = -1.0f / (m_grad_digu_x + 10e-8);
+			// 1. 做骶骨水平线
+			cv::Point temp1, temp2;
+			lineExt(m_grad_digu_x, m_gp[3], m_gp[3].x / 2, 0, temp1, temp2);
+			m_p1 = temp1;
+			lineExt(m_grad_digu_x, m_gp[4], 0, (m_srcImg.cols - m_gp[4].x)/2, temp1, temp2);
+			m_p2 = temp2;
+			// 画出骶骨水平线和点
+			cv::circle(m_maskImg, m_gp[3], m_circleRadius, m_maskColor, -1);
+			cv::circle(m_maskImg, m_gp[4], m_circleRadius, m_maskColor, -1);
+			cv::line(m_maskImg,m_p1, m_p2, m_lineColor, m_lineWidth);
+			// 写入操作
+			log.p[0] = m_p1;
+			log.p[1] = m_p2;
+			log.center[0] = m_gp[3];
+			log.center[1] = m_gp[4];
+			// 2. 过m_gp[2]做骶骨水平线的垂直线
+			cv::Point dot = lineCrossDot(m_grad_digu_x, m_gp[3], m_gp[2]);
+			if (m_grad_digu_y > 0)	// top 在左边
+				lineExt(m_grad_digu_y, dot, 0, m_gp[0].y - dot.y, m_p1, m_p2);
+			else                    // top 在右边
+				lineExt(m_grad_digu_y, dot, m_gp[0].y - dot.y, 0, m_p1, m_p2);
+			//画出骶骨水平线的垂直线
+			cv::line(m_maskImg, m_p1, m_p2, m_lineColor, m_lineWidth);
+			// 写入操作
+			log.p[2] = m_p1;
+			log.p[3] = m_p2;
+			// 3. 过骶沟较高点做股骨头线的平行线
+			if (m_gp[3].y > m_gp[4].y)  //左侧偏下，右侧偏上
+			{
+				// 过m_gp[4]做股骨头线的平行线
+				// 延长线向左延长
+				lineExt(m_grad_gugu_x, m_gp[4], m_gp[4].x - (log.p[0].x + m_gp[3].x) / 2, 0, m_p1, m_p2);
+			}
+			else if (m_gp[3].y < m_gp[4].y)  //左侧偏上，右侧偏下
+			{
+				// 过m_gp[3]做股骨头线的平行线，
+				// 延长线向右延长
+				lineExt(m_grad_gugu_x, m_gp[3], 0, (log.p[1].x + m_gp[4].x) / 2-m_gp[3].x, m_p1, m_p2);
+			}
+			else if (m_gp[3].y == m_gp[4].y)	// ？？？？？？？相等无法判断
+			{
+				// 两边相等，随便选一个了，此处选向左延长
+				// 过m_gp[4]做股骨头线的平行线
+				// 延长线向左延长
+				lineExt(m_grad_gugu_x, m_gp[4], m_gp[4].x - (log.p[0].x + m_gp[3].x) / 2, 0, m_p1, m_p2);
+			}
+			// 写入操作
+			log.p[4] = m_p1;
+			log.p[5] = m_p2;
+			// 画出股骨头线的平行线
+			cv::line(m_maskImg, log.p[4], log.p[5], m_maskColor, m_lineWidth);
+			//4. 过骶沟较低点做股骨头线平行线的垂线
+			if (m_gp[3].y > m_gp[4].y)  //左侧偏下，右侧偏上
+			{
+				// 过m_gp[4]做股骨头线的平行线,过m_gp[3]求与它的垂直点
+				dot = lineCrossDot(m_grad_gugu_x, m_gp[4], m_gp[3]);
+				//求向下偏拉距离
+				m_dDigu_down = m_dHeightScale * std::sqrt((dot.x - m_gp[3].x)*(dot.x - m_gp[3].x) + (dot.y - m_gp[3].y)*(dot.y - m_gp[3].y));
+				// 保存直线
+				log.p[6] = dot;
+				log.p[7] = m_gp[3];
+			}
+			else if (m_gp[3].y < m_gp[4].y)  //左侧偏上，右侧偏下
+			{
+				// 过m_gp[3]做股骨头线的平行线,过m_gp[4]求与它的垂直点
+				dot = lineCrossDot(m_grad_gugu_x, m_gp[3], m_gp[4]);
+				//求向下偏拉距离
+				m_dDigu_down = m_dHeightScale * std::sqrt((dot.x - m_gp[4].x)*(dot.x - m_gp[4].x) + (dot.y - m_gp[4].y)*(dot.y - m_gp[4].y));
+				// 保存直线
+				log.p[6] = dot;
+				log.p[7] = m_gp[4];
+			}
+			else if (m_gp[3].y == m_gp[4].y)	// ？？？？？？？相等无法判断
+			{
+				// 两边相等，随便选一个了，此处选向左延长
+				// 过m_gp[4]做股骨头线的平行线，过m_gp[3]求与它的垂直点
+				dot = lineCrossDot(m_grad_gugu_x, m_gp[4], m_gp[3]);
+				//求向下偏拉距离,为0
+				m_dDigu_down = m_dHeightScale * std::sqrt((dot.x - m_gp[3].x)*(dot.x - m_gp[3].x) + (dot.y - m_gp[3].y)*(dot.y - m_gp[3].y));
+				// 保存直线
+				log.p[6] = dot;
+				log.p[7] = m_gp[3];
+			}
+			// 画出该直线
+			//cv::circle(m_maskImg, log.p[6], m_circleRadius, m_maskColor, -1);
+			cv::line(m_maskImg, log.p[6], log.p[7], m_maskColor, m_lineWidth);
+			// 写入长度
+			log.length = m_dDigu_down;
+			log.center[2] = dot;
+			sprintf_s(log.text, "%.1fmm", m_dDigu_down);
+			// 标注长度
+			cv::putText(m_maskImg, log.text, log.center[2], m_fontTypeOfMeasure, m_dFontSizeOfMeasure, m_maskColor,m_fontThicknessOfMeasure);
+			//写入操作类型和步骤
+			log.op = DRAW_DIGU_LINE;
+			log.step = m_curStep;
+			m_vecLog.push_back(log);
+		}
+		// 5 左骶骨最外侧缘 做骶骨水平线的垂线
+		else if (m_curStep == 5)
+		{ 
+			// P[0~1] 为垂直线， p[2~3]为测量线
+			//center[0]为垂直线关键点，center[1]为测量线文字放置关键点
+			logInfo log = { 0 };
+			m_gp[5] = pt;
+			// 求左垂线与骶骨水平线的垂直点
+			cv::Point dot;
+			dot = lineCrossDot(m_grad_digu_x, m_gp[3], m_gp[5]);
+			//求从dot点延长线
+			if (m_grad_digu_y >0)	// top 在左边
+				lineExt(m_grad_digu_y, dot, 0, m_gp[0].y - dot.y, m_p1, m_p2);
+			else                    // top 在右边
+				lineExt(m_grad_digu_y, dot, m_gp[0].y - dot.y, 0, m_p1, m_p2);
+			// 画出直线
+			cv::circle(m_maskImg, m_gp[5], m_circleRadius, m_maskColor, -1);
+			cv::line(m_maskImg, m_p1, m_p2, m_maskColor, m_lineWidth);
+			//写入操作
+			log.p[0] = m_p1;
+			log.p[1] = m_p2;
+			log.center[0] = m_gp[5];
+			// 求该直线到第一节点m_gp[2]的距离
+			dot = lineCrossDot(m_grad_digu_y, m_gp[5], m_gp[2]);
+			m_dLlength_digu = m_dWidthScale * std::sqrt((dot.x - m_gp[2].x)*(dot.x - m_gp[2].x) + (dot.y - m_gp[2].y)*(dot.y - m_gp[2].y));
+			//画出第一节点m_gp[2]到左边垂直于骶骨水平线的垂直线(距离测量线)
+			cv::line(m_maskImg, dot, m_gp[2], m_maskColor, m_lineWidth);
+			// 标注距离测量值
+			sprintf_s(log.text, "%.1fmm", m_dLlength_digu);
+			int baseline = 0;
+			cv::Size sz_wh = cv::getTextSize(log.text, m_fontTypeOfMeasure, m_dFontSizeOfMeasure, m_fontThicknessOfMeasure, &baseline);
+			log.center[1] = cv::Point((dot.x + m_gp[2].x) / 2 - sz_wh.width/2, (dot.y + m_gp[2].y) / 2 + 1.5*sz_wh.height);
+			cv::putText(m_maskImg, log.text, log.center[1], m_fontTypeOfMeasure, m_dFontSizeOfMeasure, m_maskColor, m_fontThicknessOfMeasure);
+			//写入操作
+			log.p[2] = dot;
+			log.p[3] = m_gp[2];
+			log.op = DRAW_LINE_MEASURE;
+			log.step = m_curStep;
+			m_vecLog.push_back(log);
+		}
+		// 6 右骶骨最外侧缘 做骶骨水平线的垂线
+		else if (m_curStep == 6)
+		{
+			// P[0~1] 为垂直线， p[2~3]为测量线
+			//center[0]为垂直线关键点，center[1]为测量线文字放置关键点
+			logInfo log = { 0 };
+			m_gp[6] = pt;
+			// 求左垂线与骶骨水平线的垂直点
+			cv::Point dot;
+			dot = lineCrossDot(m_grad_digu_x, m_gp[4], m_gp[6]);
+			//求从dot点延长线
+			if (m_grad_digu_y >0)	// top 在左边
+				lineExt(m_grad_digu_y, dot, 0, m_gp[0].y - dot.y, m_p1, m_p2);
+			else                    // top 在右边
+				lineExt(m_grad_digu_y, dot, m_gp[0].y - dot.y, 0, m_p1, m_p2);
+			// 画出直线
+			cv::circle(m_maskImg, m_gp[6], m_circleRadius, m_maskColor, -1);
+			cv::line(m_maskImg, m_p1, m_p2, m_maskColor, m_lineWidth);
+			//写入操作
+			log.p[0] = m_p1;
+			log.p[1] = m_p2;
+			log.center[0] = m_gp[6];
+			// 求该直线到第一节点m_gp[2]的距离
+			dot = lineCrossDot(m_grad_digu_y, m_gp[6], m_gp[2]);
+			m_dRlength_digu = m_dWidthScale * std::sqrt((dot.x - m_gp[2].x)*(dot.x - m_gp[2].x) + (dot.y - m_gp[2].y)*(dot.y - m_gp[2].y));
+			//画出第一节点m_gp[2]到左边垂直于骶骨水平线的垂直线(距离测量线)
+			cv::line(m_maskImg, dot, m_gp[2], m_maskColor, m_lineWidth);
+			// 标注距离测量值
+			sprintf_s(log.text, "%.1fmm", m_dRlength_digu);
+			int baseline = 0;
+			cv::Size sz_wh = cv::getTextSize(log.text, m_fontTypeOfMeasure, m_dFontSizeOfMeasure, m_fontThicknessOfMeasure, &baseline);
+			log.center[1] = cv::Point((dot.x + m_gp[2].x) / 2 - sz_wh.width / 2, (dot.y + m_gp[2].y) / 2 + 1.5*sz_wh.height);
+			cv::putText(m_maskImg, log.text, log.center[1], m_fontTypeOfMeasure, m_dFontSizeOfMeasure, m_maskColor, m_fontThicknessOfMeasure);
+			//写入操作
+			log.p[2] = dot;
+			log.p[3] = m_gp[2];
+			log.op = DRAW_LINE_MEASURE;
+			log.step = m_curStep;
+			m_vecLog.push_back(log);
+		}
+		// 7,8 判断原发侧
+		// 7 左侧点
+		else if (m_curStep == 7)
+		{
+			// center[0] 为关键点
+			m_gp[7] = pt;
+			cv::circle(m_maskImg, m_gp[7], m_circleRadius, m_maskColor, -1);
+			// 保存操作
+			logInfo log = { 0 };
+			log.center[0] = m_gp[7];
+			log.op = DRAW_CIRCLE;
+			log.step = m_curStep;
+			m_vecLog.push_back(log);
+		}
+		// 8 右侧点
+		else if (m_curStep == 8)
+		{
+			// center[0] 为关键点，center[1]为诊断结果文字标注位置点
+			m_gp[8] = pt;
+			cv::circle(m_maskImg, m_gp[8], m_circleRadius, m_maskColor, -1);
+			// 保存操作
+			logInfo log = { 0 };
+			log.center[0] = m_gp[8];
+			log.op = DRAW_CIRCLE;
+			log.step = m_curStep;
+			m_vecLog.push_back(log);
+
+			// 进行诊断
+			cv::Point pose;
+			m_digu_diagnose = diagnose(DIAG_DIGU, pose);
+			// 保存诊断放置位置
+			log.center[0] = pose;
+			memcpy(log.text, m_digu_diagnose.GetBuffer(), m_digu_diagnose.GetLength() + 1);
+			// 放置诊断结果
+			cv::putText(m_maskImg, log.text, pose, m_fontTypeOfDiagnose, m_dFontSizeOfDiagnose, m_maskColor);
+			// 保存诊断结果
+			memset(&log, 0, sizeof(log));
+			log.op = DRAW_DIAGNOSE;
+			log.step = m_curStep;
+			m_vecLog.push_back(log);
+			// 取消所有勾选操作
+			//OnRButtonDown(NULL, NULL);
+		}
+		++m_curStep;
+	}// 二、 骶骨半脱位
 	Invalidate();
+
+	//有新操作后就不能再返回了
+	cv::vector<logInfo>().swap(m_vecDelLog); 
 	CDialogEx::OnLButtonUp(nFlags, point);
 }
 // 撤销
@@ -741,39 +1011,116 @@ void CchiropracticDlg::OnBnClickedButton8()
 	m_maskImg.setTo(0);
 	m_maskShowImg.setTo(0);
 
-	logInfo log = m_vecLog.back();
-	if (log.op == DRAW_MEASURE && !(log.step == 10 || log.step == 11)) // 真正的标注线
+	if (m_opType == DIAG_QIAGU)
 	{
-		m_vecDelLog.push_back(log);
-		m_vecLog.pop_back(); // 撤销
+		logInfo log = { 0 };
 		log = m_vecLog.back();
 		m_vecDelLog.push_back(log);
-		m_vecLog.pop_back(); // 撤销
-		m_curStep--;
-	}
-	else //if(log.step == 10 || log.step == 11) // 竖1 或 竖2
-	{
-		m_vecDelLog.push_back(log);
-		m_vecLog.pop_back(); // 撤销
-		m_curStep--;
-	}
-	if (m_curStep == 9 || m_curStep == 1)  // 两条不限制斜率的直线,需要返回前一步
-	{
-		m_curStep--;
-	}
-	// 重画
-	vector<logInfo>::iterator iter;
-	for (iter = m_vecLog.begin(); iter != m_vecLog.end(); ++iter)
-	{
-		logInfo log = *iter;
-		// 读取日志
-		if (log.op == DRAW_MEASURE)
+		m_vecLog.pop_back();
+
+		if (log.step == 1)		// 是股骨头线，撤销这条线，当前操作要回0步
+			m_curStep = 0;
+		else if(log.op != DRAW_DIAGNOSE)
+			--m_curStep;
+		//重画
+		for (vector<logInfo>::iterator it = m_vecLog.begin(); it != m_vecLog.end(); ++it)
 		{
-			cv::putText(m_maskImg, log.text, log.center, FONT_HERSHEY_SIMPLEX, 1, m_lineColor);
+			logInfo log = *it;
+			if (log.op == DRAW_DIAGNOSE)
+			{
+				cv::putText(m_maskImg, log.text, log.center[1], m_fontTypeOfDiagnose, m_dFontSizeOfDiagnose, m_maskColor);
+			}
+			else if (log.op == DRAW_LINE)
+			{
+				if (log.step == 1)	// 股骨头线的关键点与其他不同
+				{
+					cv::circle(m_maskImg, log.p[0], m_circleRadius, m_maskColor, -1);
+					cv::circle(m_maskImg, log.p[1], m_circleRadius, m_maskColor, -1);
+				}
+				else
+					cv::circle(m_maskImg, log.center[0], m_circleRadius, m_maskColor, -1);
+				cv::line(m_maskImg, log.p[0], log.p[1], m_maskColor, m_lineWidth);
+			}
+			else if (log.op == DRAW_LINE_MEASURE)
+			{
+				cv::circle(m_maskImg, log.center[0], m_circleRadius, m_maskColor, -1);
+				cv::line(m_maskImg, log.p[0], log.p[1], m_maskColor, m_lineWidth);
+				cv::line(m_maskImg, log.p[2], log.p[3], m_maskColor, m_lineWidth);
+				cv::putText(m_maskImg, log.text, log.center[1], m_fontTypeOfMeasure, m_dFontSizeOfMeasure, m_maskColor);
+			}
+			else if (log.op == DRAW_CIRCLE)
+			{
+				cv::circle(m_maskImg, log.center[1], m_circleRadius, m_maskColor, -1);
+			}
 		}
-		cv::line(m_maskImg, log.p1, log.p2, m_lineColor, m_l);
+	}
+	else if (m_opType == DIAG_DIGU)
+	{
+		logInfo log = { 0 };
+		log = m_vecLog.back();
+		m_vecDelLog.push_back(log);
+		m_vecLog.pop_back();
+		if (log.step == 1 || log.step == 4)
+			m_curStep -= 2;
+		else if (log.op != DRAW_DIAGNOSE)
+			--m_curStep;
+		//重画
+		for (vector<logInfo>::iterator it = m_vecLog.begin(); it != m_vecLog.end(); ++it)
+		{
+			logInfo log = *it;
+			if (log.op == DRAW_DIAGNOSE)
+			{
+				cv::putText(m_maskImg, log.text, log.center[0], m_fontTypeOfDiagnose, m_dFontSizeOfDiagnose, m_maskColor,m_fontThicknessOfDiagnose);
+			}
+			else if (log.op == DRAW_LINE_MEASURE)
+			{
+				// 两条垂直线
+				cv::circle(m_maskImg, log.center[0], m_circleRadius, m_maskColor, -1);
+				cv::line(m_maskImg, log.p[0], log.p[1], m_maskColor, m_lineWidth);
+				cv::line(m_maskImg, log.p[2], log.p[3], m_maskColor, m_lineWidth);
+				cv::putText(m_maskImg, log.text, log.center[1], m_fontTypeOfMeasure, m_dFontSizeOfMeasure, m_maskColor, m_fontThicknessOfMeasure);
+			}
+			else if (log.op == DRAW_DIGU_LINE)
+			{
+				// 画出骶骨水平线和点
+				cv::circle(m_maskImg, log.center[0], m_circleRadius, m_maskColor, -1);
+				cv::circle(m_maskImg, log.center[1], m_circleRadius, m_maskColor, -1);
+				cv::line(m_maskImg, log.p[0], log.p[1], m_lineColor, m_lineWidth);
+				//画出骶骨水平线的垂直线
+				cv::line(m_maskImg, log.p[2], log.p[3], m_lineColor, m_lineWidth);
+				// 画出股骨头线的平行线
+				cv::line(m_maskImg, log.p[4], log.p[5], m_maskColor, m_lineWidth);
+				// 画出垂直股骨头平行线的垂线
+				cv::line(m_maskImg, log.p[6], log.p[7], m_maskColor, m_lineWidth);
+				// 标注长度
+				cv::putText(m_maskImg, log.text, log.center[2], m_fontTypeOfMeasure, m_dFontSizeOfMeasure, m_maskColor, m_fontThicknessOfMeasure);
+			}
+			else if (log.op == DRAW_LINE)
+			{
+				if (log.step == 1)
+				{
+					// 股骨头线
+					cv::circle(m_maskImg, log.p[0], m_circleRadius, m_maskColor, -1);
+					cv::circle(m_maskImg, log.p[1], m_circleRadius, m_maskColor, -1);
+					cv::line(m_maskImg, log.p[0], log.p[1], m_maskColor, m_lineWidth);
+				}
+				else
+				{
+					// 股骨头线垂直线
+					cv::circle(m_maskImg, log.center[0], m_circleRadius, m_maskColor, -1);
+					cv::line(m_maskImg, log.p[0], log.p[1], m_maskColor, m_lineWidth);
+				}
+			}
+
+			else if (log.op == DRAW_CIRCLE)
+			{
+				cv::circle(m_maskImg, log.center[0], m_circleRadius, m_maskColor, -1);
+			}
+		}
 	}
 	m_maskImg.copyTo(m_maskShowImg);
+	//if (m_bDrawLine)
+	//	remindColor();
 	Invalidate();
 }
 // 重做
@@ -781,41 +1128,107 @@ void CchiropracticDlg::OnBnClickedButton9()
 {
 	// TODO: 在此添加控件通知处理程序代码
 	if (m_vecDelLog.size() == 0) return;
+	logInfo log = { 0 };
+	log = m_vecDelLog.back();
+	m_vecLog.push_back(log);
+	m_vecDelLog.pop_back();
 
-	logInfo log = m_vecDelLog.back();
-	m_vecLog.push_back(log); // 重新添加回操作日志
-	m_vecDelLog.pop_back(); // 撤销
-	m_curStep++;
-	if (log.op == DRAW_MEASURE)  // 只能是最后两条垂线，正常标注线不可能在尾部
+	// 添加回操作
+	if (m_opType == DIAG_QIAGU)
 	{
-		cv::line(m_maskImg, log.p1, log.p2, m_lineColor, m_l);
-		cv::putText(m_maskImg, log.text, log.center, FONT_HERSHEY_SIMPLEX, 1, m_lineColor);
-	}
-	else
-	{
-		cv::line(m_maskImg, log.p1, log.p2, m_lineColor, m_l);
-		if (m_vecDelLog.size() != 0)  // 看跟着的是不是标注线
+		if (log.step == 1)
+			m_curStep = 2;
+
+		if (log.op == DRAW_DIAGNOSE)
 		{
-			log = m_vecDelLog.back();
-			if (log.op == DRAW_MEASURE && !(log.step == 10 || log.step == 11))
+			cv::putText(m_maskImg, log.text, log.center[1], m_fontTypeOfDiagnose, m_dFontSizeOfDiagnose, m_maskColor);
+		}
+		else if (log.op == DRAW_LINE)
+		{
+			if (log.step == 1)	// 股骨头线的关键点与其他不同
 			{
-				m_vecLog.push_back(log); // 重新添加回操作日志
-				m_vecDelLog.pop_back(); // 撤销
-				//m_curStep++;
-				cv::line(m_maskImg, log.p1, log.p2, m_lineColor, m_l);
-				cv::putText(m_maskImg, log.text, log.center, FONT_HERSHEY_SIMPLEX, 1, m_lineColor);
+				cv::circle(m_maskImg, log.p[0], m_circleRadius, m_maskColor, -1);
+				cv::circle(m_maskImg, log.p[1], m_circleRadius, m_maskColor, -1);
 			}
+			else
+				cv::circle(m_maskImg, log.center[0], m_circleRadius, m_maskColor, -1);
+			cv::line(m_maskImg, log.p[0], log.p[1], m_maskColor, m_lineWidth);
+			++m_curStep;
+		}
+		else if (log.op == DRAW_LINE_MEASURE)
+		{
+			cv::circle(m_maskImg, log.center[0], m_circleRadius, m_maskColor, -1);
+			cv::line(m_maskImg, log.p[0], log.p[1], m_maskColor, m_lineWidth);
+			cv::line(m_maskImg, log.p[2], log.p[3], m_maskColor, m_lineWidth);
+			cv::putText(m_maskImg, log.text, log.center[1], m_fontTypeOfMeasure, m_dFontSizeOfMeasure, m_maskColor);
+			++m_curStep;
+		}
+		else if (log.op == DRAW_CIRCLE)
+		{
+			cv::circle(m_maskImg, log.center[1], m_circleRadius, m_maskColor, -1);
+			++m_curStep;
 		}
 	}
-	if (m_curStep == 9 || m_curStep == 1)  // 两条不限制斜率的直线
+	else if (m_opType == DIAG_DIGU)
 	{
-		m_curStep++;
-	}
-	if (m_curStep -1== 11)   // 加入诊断结果
-		cv::putText(m_maskImg, m_result, cv::Point(100, 100), cv::FONT_HERSHEY_COMPLEX, 1, m_lineColor);
+		if (log.op == DRAW_DIAGNOSE)
+		{
+			cv::putText(m_maskImg, log.text, log.center[0], m_fontTypeOfDiagnose, m_dFontSizeOfDiagnose, m_maskColor, m_fontThicknessOfDiagnose);
+		}
+		else if (log.op == DRAW_LINE_MEASURE)
+		{
+			// 两条垂直线
+			cv::circle(m_maskImg, log.center[0], m_circleRadius, m_maskColor, -1);
+			cv::line(m_maskImg, log.p[0], log.p[1], m_maskColor, m_lineWidth);
+			cv::line(m_maskImg, log.p[2], log.p[3], m_maskColor, m_lineWidth);
+			cv::putText(m_maskImg, log.text, log.center[1], m_fontTypeOfMeasure, m_dFontSizeOfMeasure, m_maskColor, m_fontThicknessOfMeasure);
+			++m_curStep;
+		}
+		else if (log.op == DRAW_DIGU_LINE)
+		{
+			// 画出骶骨水平线和点
+			cv::circle(m_maskImg, log.center[0], m_circleRadius, m_maskColor, -1);
+			cv::circle(m_maskImg, log.center[1], m_circleRadius, m_maskColor, -1);
+			cv::line(m_maskImg, log.p[0], log.p[1], m_lineColor, m_lineWidth);
+			//画出骶骨水平线的垂直线
+			cv::line(m_maskImg, log.p[2], log.p[3], m_lineColor, m_lineWidth);
+			// 画出股骨头线的平行线
+			cv::line(m_maskImg, log.p[4], log.p[5], m_maskColor, m_lineWidth);
+			// 画出垂直股骨头平行线的垂线
+			cv::line(m_maskImg, log.p[6], log.p[7], m_maskColor, m_lineWidth);
+			// 标注长度
+			cv::putText(m_maskImg, log.text, log.center[2], m_fontTypeOfMeasure, m_dFontSizeOfMeasure, m_maskColor, m_fontThicknessOfMeasure);
+			m_curStep += 2;
+		}
+		else if (log.op == DRAW_LINE)
+		{
+			if (log.step == 1)
+			{
+				// 股骨头线
+				cv::circle(m_maskImg, log.p[0], m_circleRadius, m_maskColor, -1);
+				cv::circle(m_maskImg, log.p[1], m_circleRadius, m_maskColor, -1);
+				cv::line(m_maskImg, log.p[0], log.p[1], m_maskColor, m_lineWidth);
+				m_curStep += 2;
+			}
+			else
+			{
+				// 股骨头线垂直线
+				cv::circle(m_maskImg, log.center[0], m_circleRadius, m_maskColor, -1);
+				cv::line(m_maskImg, log.p[0], log.p[1], m_maskColor, m_lineWidth);
+				++m_curStep;
+			}
+		}
 
-	m_maskImg.copyTo(m_maskShowImg);
+		else if (log.op == DRAW_CIRCLE)
+		{
+			cv::circle(m_maskImg, log.center[0], m_circleRadius, m_maskColor, -1);
+			++m_curStep;
+		}
+	}
 	Invalidate();
+
+	/*if (m_bDrawLine)
+		remindColor();*/
 }
 BOOL CchiropracticDlg::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt) // 屏幕坐标
 {
@@ -859,39 +1272,39 @@ BOOL CchiropracticDlg::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt) // 屏
 }
 void CchiropracticDlg::OnCbnSelchangeCombo1()
 {
-	//// TODO: 在此添加控件通知处理程序代码
-	//int nIndex = m_Combo.GetCurSel();
-	//CString strText;
-	//m_Combo.GetLBText(nIndex, strText);
+	// TODO: 在此添加控件通知处理程序代码
+	int nIndex = m_Combo.GetCurSel();
+	CString strText;
+	m_Combo.GetLBText(nIndex, strText);
 
-	//// 只是为了调整换算比例尺
-	//if (strText == _T("14x17"))  
-	//{
-	//	int w, h; //实际尺寸(mm或英寸)
-	//	w = 100;
-	//	h = 200;
-	//	m_dWidthScale = m_dWidth / m_srcImg->width;
-	//	m_dHeightScale = m_dHeight / m_srcImg->height;
-	//}
-	//else if (strText == _T("7x8.5"))
-	//{
-	//	int w, h; //实际尺寸(mm或英寸)
-	//	w = 50;
-	//	h = 100;
-	//	m_dWidthScale = m_dWidth / m_srcImg->width;
-	//	m_dHeightScale = m_dHeight / m_srcImg->height;
-	//}
-	//else if (strText == _T("....."))
-	//{
-	//	// continue
-	//}
-	//else  // default
-	//{
-	//	// nothing
-	//}
+	// 只是为了调整换算比例尺
+	if (strText == _T("14x17"))  
+	{
+		int w, h; //实际尺寸(mm或英寸)
+		w = 17*25.4;
+		h = 14*25.4;
+		m_dWidthScale = w / m_srcImg.cols;
+		m_dHeightScale = h / m_srcImg.rows;
+	}
+	else if (strText == _T("7x8.5"))
+	{
+		int w, h; //实际尺寸(mm或英寸)
+		w = 8.5*25.4;
+		h = 7*25.4;
+		m_dWidthScale = w / m_srcImg.cols;
+		m_dHeightScale = h / m_srcImg.rows;
+	}
+	else if (strText == _T("....."))
+	{
+		// continue
+	}
+	else  // default
+	{
+		// nothing
+	}
 
-	//// 重绘
-	//OnPaint();
+	// 重绘
+	OnPaint();
 
 }
 void CchiropracticDlg::Invalidate(BOOL bErase)
@@ -923,8 +1336,10 @@ void CchiropracticDlg::Invalidate(BOOL bErase)
 }
 void CchiropracticDlg::Draw(CDC *pDC)
 {
-	m_srcImg.copyTo(m_zoomImg);
-	m_zoomImg.setTo(cv::Scalar(255, 0, 0), m_maskShowImg);
+	m_srcImg.copyTo(m_zoomImg);  //	拷贝原图
+	m_maskShowImg.setTo(m_maskColor, m_maskImg);
+	m_zoomImg.setTo(m_maskColor, m_maskShowImg);	//绘制
+	//m_zoomImg.setTo(m_measureColor, m_maskImg);	//绘制直线
 	int width = m_zoomImg.cols;
 	int height = m_zoomImg.rows;
 	Gdiplus::Bitmap img(m_zoomImg.cols, m_zoomImg.rows, PixelFormat24bppRGB);
@@ -943,7 +1358,7 @@ void CchiropracticDlg::Draw(CDC *pDC)
 	graph.SetInterpolationMode(InterpolationModeHighQualityBilinear); //设置缩放质量
 	graph.ScaleTransform(m_zoom, m_zoom);                             //缩放
 	graph.DrawImage(&img, m_imgX, m_imgY);                            //m_imgX,m_imgY是原图应该偏移的量
-	m_edit = m_curStep;
+	m_edit = m_curStep;				//调试
 	UpdateData(false);	
 }
 
@@ -962,30 +1377,27 @@ void CchiropracticDlg::OnBnClickedButton11()
 		return;
 
 	CString mPath = dlg1.GetPathName();            // 获取图片路径
-	int len = WideCharToMultiByte(CP_ACP, 0, mPath, -1, NULL, 0, NULL, NULL);
+	/*int len = WideCharToMultiByte(CP_ACP, 0, mPath, -1, NULL, 0, NULL, NULL);
 	char *ptxtTemp = new char[len + 1];
-	WideCharToMultiByte(CP_ACP, 0, mPath, -1, ptxtTemp, len, NULL, NULL);
+	WideCharToMultiByte(CP_ACP, 0, mPath, -1, ptxtTemp, len, NULL, NULL);*/
+
+	char *ptxtTemp = mPath.GetBuffer(mPath.GetLength());
 
 	cv::Mat saveImg;
 	saveImg = m_srcImg.clone();
 	saveImg.setTo(cv::Scalar(255, 0, 0), m_maskImg);
 	imwrite(ptxtTemp, saveImg);
-	delete[] ptxtTemp;
+	//delete[] ptxtTemp;
 }
 
-// 鼠标，取消一切选取
-void CchiropracticDlg::OnBnClickedButton12()
-{
-	// TODO: 在此添加控件通知处理程序代码
-	OnRButtonDown(NULL, NULL);
 
-}
-
-void CchiropracticDlg::OnBnClickedButton13()
-{
-
-}
 // 求线的延长线
+/*
+* grad:线的斜率
+* center:延长点坐标
+* lenth_l: 偏左延长长度
+* lenth_r:偏右延长长度
+*/
 void  CchiropracticDlg::lineExt(double grad, cv::Point center, double lenth_l, double lenth_r, cv::Point &p_l, cv::Point &p_r)
 {
 	double delta_x, delta_y, delta_x1, delta_y1;
@@ -1015,6 +1427,7 @@ void  CchiropracticDlg::lineExt(double grad, cv::Point center, double lenth_l, d
 /*
 p1 为直线上的点
 p2 为直线外的点
+grad 为 p1点所在直线斜率
 求与跑p1同直线上的交点
 */
 cv::Point CchiropracticDlg::lineCrossDot(double grad, cv::Point p1, cv::Point p2)
@@ -1026,8 +1439,12 @@ cv::Point CchiropracticDlg::lineCrossDot(double grad, cv::Point p1, cv::Point p2
 	return cv::Point(dot_x,dot_y);
 }
 
-string CchiropracticDlg::WChar2Ansi(LPCWSTR pwszSrc)
+string CchiropracticDlg::WChar2Ansi(LPSTR pwszSrc)
 {
+	//pwszSrc.GetBuffer(pwszSrc.GetLenth())
+	return pwszSrc;
+	
+	/*
 	int nLen = WideCharToMultiByte(CP_ACP, 0, pwszSrc, -1, NULL, 0, NULL, NULL);
 	if (nLen <= 0) return std::string("");
 	char* pszDst = new char[nLen];
@@ -1036,5 +1453,331 @@ string CchiropracticDlg::WChar2Ansi(LPCWSTR pwszSrc)
 	pszDst[nLen - 1] = 0;
 	std::string strTemp(pszDst);
 	delete[] pszDst;
-	return strTemp;
+	return strTemp;*/
+}
+
+/*
+* 功能：返回诊断结果和结果放置位置
+* op_type：操作类型
+* pose：结果放置位置
+*/
+CString CchiropracticDlg::diagnose(int op_type, cv::Point &pose)
+{
+	CString result = _T("");
+	if (op_type == DIAG_QIAGU)
+	{
+		// 判断原发侧
+		if (m_gp[8].x == m_gp[9].x)
+		{
+			MessageBox(_T("无法判断原发侧，请撤销当前操作，并重新执行该步操作!"));
+			pose = cv::Point(0, 0);
+			return CString();
+		}
+		if (!(m_gp[8].x < m_gp[6].x && m_gp[6].x < m_gp[9].x))
+		{
+			MessageBox(_T("无法判断原发侧，请撤销当前操作，并重新执行该步操作!"));
+			pose = cv::Point(0, 0);
+			return CString();
+		}
+		else
+		{
+			double l, r;
+			l = std::sqrt((m_gp[8].x - m_gp[6].x)*(m_gp[8].x - m_gp[6].x) + (m_gp[8].y - m_gp[6].y)*(m_gp[8].y - m_gp[6].y));
+			r = std::sqrt((m_gp[9].x - m_gp[6].x)*(m_gp[9].x - m_gp[6].x) + (m_gp[9].y - m_gp[6].y)*(m_gp[9].y - m_gp[6].y));
+			if (l < r)	//原发侧在右边，长的为原发侧
+			{
+				CString str = _T("");
+				if (m_dLlength_wuminggu < m_dRlength_wuminggu)		// 右侧原发侧为PI
+					str.Format(_T("PI%d"), int(std::round(std::abs(m_dLlength_wuminggu - m_dRlength_wuminggu))));
+				else if (m_dLlength_wuminggu > m_dRlength_wuminggu)		// 右侧原发侧为AS
+					str.Format(_T("AS%d"), int(std::round(std::abs(m_dLlength_wuminggu - m_dRlength_wuminggu))));
+				else if (m_dLlength_wuminggu == m_dRlength_wuminggu)		// ？？？？？？？？？？？无法判断右侧原发侧为什么
+					str = _T("");
+				result += str;
+
+				if (m_dLength < 0)		// 右侧原发侧为 Ex
+					str.Format(_T("Ex%d"), int(std::round(std::abs(m_dLength))));
+				else if (m_dLength > 0)	// 右侧原发侧为 In
+					str.Format(_T("In%d"), int(std::round(m_dLength)));
+				else if(m_dLength == 0)	// ????????????????????? 无法判断
+					str = _T("");
+
+				result += str;
+				// 调整诊断结果文字放置位置
+				int baseline = 0;
+				cv::Size sz_wh = cv::getTextSize(result.GetBuffer(), m_fontTypeOfDiagnose, m_dFontSizeOfDiagnose, m_fontThicknessOfDiagnose, &baseline);
+				pose = cv::Point(m_srcImg.cols * 7 / 8 - sz_wh.width / 2, m_srcImg.rows / 2 + sz_wh.height / 2);
+			}
+			else if (l > r)				//左侧为原发侧
+			{
+				CString str = _T("");
+				if (m_dLlength_wuminggu > m_dRlength_wuminggu)		// 左侧原发侧为PI
+					str.Format(_T("PI%d"), int(std::round(std::abs(m_dLlength_wuminggu - m_dRlength_wuminggu))));
+				else if (m_dLlength_wuminggu < m_dRlength_wuminggu)		// 左侧原发侧为AS
+					str.Format(_T("AS%d"), int(std::round(std::abs(m_dLlength_wuminggu - m_dRlength_wuminggu))));
+				else if (m_dLlength_wuminggu == m_dRlength_wuminggu)		// ？？？？？？？？？？？无法判断左侧原发侧为什么
+					str = _T("");
+				result += str;
+
+				if (m_dLength > 0)		// 左侧原发侧为 Ex
+					str.Format(_T("Ex%d"), int(std::round(m_dLength)));
+				else if (m_dLength < 0)	// 左侧原发侧为 In
+					str.Format(_T("In%d"), int(std::round(std::abs(m_dLength))));
+				else if (m_dLength == 0)	// ????????????????????? 无法判断
+					str = _T("");
+				result += str;
+				// 调整诊断结果文字放置位置
+				int baseline = 0;
+				cv::Size sz_wh = cv::getTextSize(result.GetBuffer(), m_fontTypeOfDiagnose, m_dFontSizeOfDiagnose, m_fontThicknessOfDiagnose, &baseline);
+				pose = cv::Point(m_srcImg.cols * 1 / 8 - sz_wh.width / 2, m_srcImg.rows / 2 + sz_wh.height / 2);
+			}
+			else if (l == r)
+			{
+				MessageBox(_T("无法判断原发侧，请撤销当前操作，并重新执行该步操作!"));
+				pose = cv::Point(0, 0);
+				return CString();
+			}
+		}
+	}
+	else if (op_type == DIAG_DIGU)
+	{
+		/////
+		// 判断原发侧
+		if (m_gp[7].x == m_gp[8].x)
+		{
+			MessageBox(_T("无法判断原发侧，请撤销当前操作，并重新执行该步操作!"));
+			pose = cv::Point(0, 0);
+			return CString();
+		}
+		if (!(m_gp[7].x < m_gp[2].x && m_gp[2].x < m_gp[8].x))
+		{
+			MessageBox(_T("无法判断原发侧，请撤销当前操作，并重新执行该步操作!"));
+			pose = cv::Point(0, 0);
+			return CString();
+		}
+		else
+		{
+			double l, r;
+			l = m_dWidthScale * std::sqrt((m_gp[7].x - m_gp[2].x)*(m_gp[7].x - m_gp[2].x) + (m_gp[7].y - m_gp[2].y)*(m_gp[7].y - m_gp[2].y));
+			r = m_dWidthScale * std::sqrt((m_gp[8].x - m_gp[2].x)*(m_gp[8].x - m_gp[2].x) + (m_gp[8].y - m_gp[2].y)*(m_gp[8].y - m_gp[2].y));
+			// 判断是否有向下偏位
+			bool bHasDown = false;
+			double minus = std::abs(m_dLlength_digu - m_dRlength_digu);
+			if (minus >= 7)
+				bHasDown = true;
+			else if (minus >= 4 && minus <= 6)
+			{
+				CString str;
+				str.Format(_T("两侧距离之差为%.1fmm, 请判断是否有向下偏位？"), minus);
+				INT_PTR ret = MessageBox(str, _T("确认"), MB_YESNO);
+				if (ret == IDYES)
+					bHasDown = true;
+				else
+					bHasDown = false;
+			}
+			//判断原发侧
+			if (l < r)	//原发侧在右边，长的为原发侧
+			{
+				CString str = _T("");
+				if (bHasDown)	// 有向下偏位
+					result.Format(_T("P%dI%d-R"), int(std::round(m_dLlength_digu - m_dRlength_digu)), int(std::round(m_dDigu_down)));
+				else            // 没有向下偏拉
+					result.Format(_T("P%d-R"), int(std::round(m_dLlength_digu - m_dRlength_digu)));
+				// 调整诊断结果文字放置位置
+				int baseline = 0;
+				cv::Size sz_wh = cv::getTextSize(result.GetBuffer(), m_fontTypeOfDiagnose, m_dFontSizeOfDiagnose, m_fontThicknessOfDiagnose, &baseline);
+				pose = cv::Point(m_srcImg.cols * 7 / 8 - sz_wh.width / 2, m_srcImg.rows / 2 + sz_wh.height / 2);
+			}
+			else if (l > r)				//左侧为原发侧
+			{
+				CString str = _T("");
+				if (bHasDown)	// 有向下偏位
+					result.Format(_T("P%dI%d-L"), int(std::round(m_dLlength_digu - m_dRlength_digu)), int(std::round(m_dDigu_down)));
+				else            // 没有向下偏拉
+					result.Format(_T("P%d-L"), int(std::round(m_dLlength_digu - m_dRlength_digu)));
+				// 调整诊断结果文字放置位置
+				int baseline = 0;
+				cv::Size sz_wh = cv::getTextSize(result.GetBuffer(), m_fontTypeOfDiagnose, m_dFontSizeOfDiagnose, m_fontThicknessOfDiagnose, &baseline);
+				pose = cv::Point(m_srcImg.cols * 1 / 8 - sz_wh.width / 2, m_srcImg.rows / 2 + sz_wh.height / 2);
+			}
+			else if (l == r)
+			{
+				MessageBox(_T("无法判断原发侧，请撤销当前操作，并重新执行该步操作!"));
+				pose = cv::Point(0, 0);
+				return CString();
+			}
+		}
+
+	}
+
+	return result;
+}
+
+void CchiropracticDlg::initParam()
+{
+	m_zoom = 1.0f;
+
+	m_imgX = 0.0f;
+	m_imgY = 0.0f;
+	m_PtStart.X = 0.0f;
+	m_PtStart.Y = 0.0f;
+
+	m_bLButtonDown = false;
+	GetDlgItem(IDC_PICTURE)->SetWindowPos(NULL, 0, 0, m_ctrlWidth, m_ctrlHeight, SWP_NOMOVE); //固定大小的窗口
+
+																							  // 尺寸
+	m_Combo.AddString(_T("尺寸"));
+	m_Combo.AddString(_T("14x17"));
+	m_Combo.AddString(_T("7x8.5"));
+	int nIndex = m_Combo.FindStringExact(0, _T("尺寸"));
+	if (nIndex != CB_ERR)
+		m_Combo.SetCurSel(nIndex);
+
+	m_remind1.SetBkColor(RGB(0, 255, 0));
+	m_remind1.SetForeColor(RGB(255, 0, 0));
+	m_remind1.SetTextFont(200, _T("宋体"));
+
+	m_remind1.SetWindowText(_T("请先加载图片！"));
+
+
+
+	// 画图相关参数
+	m_circleRadius = 3;
+	m_lineWidth = 1;													// 线的宽度
+	m_maskColor = cv::Scalar(255,0,0);									// 蒙版颜色
+	m_lineColor = cv::Scalar(255, 255, 255);							// 线的颜色, 白色
+	m_circleColor = cv::Scalar(255, 0, 0);								// 小圆点的颜色， 绿色
+	m_infoColor = cv::Scalar(0, 255, 0);								// CT片信息的文字颜色，黄色
+	m_diagnoseColor = cv::Scalar(255, 0, 0);							// 诊断结果字体颜色，绿色
+	m_measureColor = cv::Scalar( 0, 0, 255);							// 划片时测量的值的颜色，红色
+	m_fontTypeOfInfo = cv::FONT_HERSHEY_COMPLEX;						// CT片信息字体类型
+	m_dFontSizeOfInfo = 1;												// CT片信息字体大小
+	m_fontThicknessOfInfo = 2;											// CT片信息字体宽度
+	m_fontTypeOfMeasure = cv::FONT_HERSHEY_COMPLEX;						// 划片时测量的值得字体类型
+	m_dFontSizeOfMeasure = 1;											// 划片时测量的值得字体大小
+	m_fontThicknessOfMeasure = 2;										// 划片时测量的值得宽度
+	m_fontTypeOfDiagnose = cv::FONT_HERSHEY_COMPLEX;					// 诊断结果的字体类型
+	m_dFontSizeOfDiagnose = 1;											// 诊断结果的字体大小
+	m_fontThicknessOfDiagnose = 3;											// 诊断结果字体宽度
+	m_strRemind_gp[20];
+}
+
+// 针对提示语句，对当前步骤的语句进行高亮
+void CchiropracticDlg::remindColor(int op_type)
+{
+	m_remind1.SetBkColor(RGB(0, 255, 0));
+	m_remind1.SetForeColor(RGB(255, 0, 0));
+	m_remind1.SetTextFont(200, _T("宋体"));
+
+	switch (m_curStep)
+	{
+	case 0:
+		m_remind1.SetWindowText(m_strRemind_gp[0].GetString());
+		break;
+	case 2:
+		m_remind1.SetWindowText(m_strRemind_gp[1].GetString());
+		break;
+	case 4:
+		m_remind1.SetWindowText(m_strRemind_gp[2].GetString());
+		break;
+	case 6:
+		m_remind1.SetWindowText(m_strRemind_gp[3].GetString());
+		break;
+	case 7:
+		m_remind1.SetWindowText(m_strRemind_gp[4].GetString());
+		break;
+	case 8:
+		m_remind1.SetWindowText(m_strRemind_gp[5].GetString());
+		break;
+	case 10:
+		m_remind1.SetWindowText(m_strRemind_gp[6].GetString());
+		break;
+	case 11:
+		m_remind1.SetWindowText(m_strRemind_gp[7].GetString());
+		break;
+	case 12:
+		m_remind1.SetWindowText(m_strRemind_gp[8].GetString());
+		break;
+	case 15:
+		m_remind1.SetWindowText(m_strRemind_gp[9].GetString());
+		break;
+	case 16:
+		m_remind1.SetWindowText(m_strRemind_gp[10].GetString());
+		break;
+	default:
+		break;
+	}
+	OnPaint();
+}
+
+bool CchiropracticDlg::dcm2Mat(const char* const fileName, cv::Mat & mat)
+{
+
+	DJDecoderRegistration::registerCodecs(); // register JPEG codecs  
+	DcmFileFormat fileformat;										 //DcmFileFormat fileformat;
+	fileformat.loadFile(fileName);
+	//if (fileformat.loadFile("ct.1").good())
+
+	DcmDataset *dataset = fileformat.getDataset();
+	// decompress data set if compressed    
+	dataset->chooseRepresentation(EXS_LittleEndianExplicit, NULL);
+	DcmElement* element = NULL;
+	OFCondition result = dataset->findAndGetElement(DCM_PixelData, element);
+	if (result.bad() || element == NULL)
+		return false;
+	unsigned short* pixData;
+	result = element->getUint16Array(pixData);
+
+	
+	OFintptr_t rows = 0;
+	OFintptr_t cols = 0;
+	dataset->findAndGetLongInt(DCM_Rows, rows);
+	dataset->findAndGetLongInt(DCM_Columns, cols);
+
+	if (rows == 0 || cols == 0)
+		return false;
+
+	unsigned short *pbuf = new unsigned short[rows*cols];
+
+	memcpy(pbuf, pixData, rows*cols * 2);
+	Mat xxx(rows, cols, CV_16SC1, pbuf);
+	Mat xx;
+	cv::normalize(xxx, xx, 0, 255, NORM_MINMAX, CV_8UC1);
+
+	Mat afull(xx.rows, xx.cols, CV_8UC1, 255);  // 图像颜色反转，黑变白，白变黑
+	xx = afull - xx;
+	mat = xx.clone();
+	
+	cvtColor(mat, mat, CV_GRAY2RGB);
+
+	delete[]pbuf;
+	DJDecoderRegistration::cleanup(); // deregister JPEG codecs 
+	return true;
+}
+
+void CchiropracticDlg::OnBnClickedButtonOp1()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	m_opType = DIAG_QIAGU;
+	m_curStep = 0;
+}
+void CchiropracticDlg::OnBnClickedButtonOp2()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	m_opType = DIAG_DIGU;
+	m_curStep = 0;
+}
+
+
+void CchiropracticDlg::OnBnClickedButtonOp3()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	int a = 111;
+	m_curStep = 0;
+}
+
+
+void CchiropracticDlg::OnBnClickedButton13()
+{
+	// TODO: 在此添加控件通知处理程序代码
 }

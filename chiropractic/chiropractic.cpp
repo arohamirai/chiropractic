@@ -144,7 +144,7 @@ BOOL CchiropracticApp::InitInstance()
 		regDlg.m_res = res;
 		INT_PTR ret = regDlg.DoModal();
 		if (ret != IDOK)
-			return;	
+			return FALSE;	
 	}
 	CchiropracticDlg dlg;
 	m_pMainWnd = &dlg;

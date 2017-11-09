@@ -29,7 +29,7 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
     <UseOfMfc>Dynamic</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -37,7 +37,7 @@
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
     <UseOfMfc>Dynamic</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -63,9 +63,12 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\..\VS15_OPENCV2413_D_x86.props" />
+    <Import Project="..\..\..\DCMTK_VS2015_X86_d.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\..\VS15_OPENCV2413_R_x86.props" />
+    <Import Project="..\..\..\DCMTK_VS2015_X86_R.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -197,6 +200,7 @@
     <ClInclude Include="CvvImage.h" />
     <ClInclude Include="InitGdiplus.h" />
     <ClInclude Include="InputName.h" />
+    <ClInclude Include="MyEdit.h" />
     <ClInclude Include="Parameter.h" />
     <ClInclude Include="Register.h" />
     <ClInclude Include="Resource.h" />
@@ -209,6 +213,7 @@
     <ClCompile Include="CvvImage.cpp" />
     <ClCompile Include="InitGdiplus.cpp" />
     <ClCompile Include="InputName.cpp" />
+    <ClCompile Include="MyEdit.cpp" />
     <ClCompile Include="Parameter.cpp" />
     <ClCompile Include="Register.cpp" />
     <ClCompile Include="stdafx.cpp">
