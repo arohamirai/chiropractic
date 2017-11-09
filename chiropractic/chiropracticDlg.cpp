@@ -649,10 +649,20 @@ void CchiropracticDlg::OnLButtonUp(UINT nFlags, CPoint point)
 			cv::line(m_maskImg, pt, dot, m_maskColor, m_lineWidth);
 
 			sprintf_s(log.text, "%.1fmm", length);
-			cv::Point center = cv::Point(pt.x + 2* length, pt.y);
+			cv::Point center;
+			if(m_gp[7].x < dot.x)		//耻骨联合中线偏左
+			{
+				int baseline = 0;
+				cv::Size sz_wh = cv::getTextSize(log.text, m_fontTypeOfMeasure, m_dFontSizeOfMeasure, m_fontThicknessOfMeasure, &baseline);
+				center = cv::Point(m_gp[7].x - sz_wh.width, m_gp[7].y + *sz_wh.height/2);
+			}
+			else						//耻骨联合中线偏右,或相等
+			{
+				center = cv::Point(m_gp[7].x, m_gp[7].y);
+			}
 			cv::putText(m_maskImg, log.text, center, m_fontTypeOfMeasure, m_dFontSizeOfMeasure, m_maskColor, m_fontThicknessOfMeasure);
 
-			if (pt.x < dot.x)
+			if (m_gp[7].x < dot.x)
 				m_dLength = 0 - length;
 			else
 				m_dLength = length;
