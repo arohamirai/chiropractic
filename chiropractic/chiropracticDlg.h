@@ -99,12 +99,12 @@ private:
 	int m_fontTypeOfDiagnose;				// 诊断结果的字体类型
 	double m_dFontSizeOfDiagnose;			// 诊断结果的字体大小
 	int m_fontThicknessOfDiagnose;			// 诊断结果字体宽度
-	CString m_strRemind_gp[20];
+	CString *m_csRemind;					// 操作提示
 
 
 // 辅助变量
 	REAL m_zoom;  //缩放系数
-	CRect m_Rect; //对话框的矩形区域
+	//CRect m_Rect; //对话框的矩形区域
 	REAL m_imgX; //图片左上角X轴偏移量,相对于控件左上角
 	REAL m_imgY; //图片左上角Y轴偏移量
 	PointF m_PtStart;    //按下鼠标左键，记录当前的m_imgX,m_imgY
@@ -125,20 +125,23 @@ private:
 	CString m_qiagu_diagnose;			// 髂骨诊断结果
 // 辅助变量
 private:
+	CString m_csQiagu_remind[20];		// 髂骨操作提示
 
 ///////////////////////////////////////////////////////////////////////////////////////
 //二、骶骨半脱位
 private:
-	double m_grad_digu_x;		// 骶骨水平线斜率
-	double m_grad_digu_y;		// 骶骨水平线垂直线的斜率
-	//double m_grad_gugu_x;		// 利用前面定义好的
+	double m_grad_digu_x;				// 骶骨水平线斜率
+	double m_grad_digu_y;				// 骶骨水平线垂直线的斜率
+	//double m_grad_gugu_x;				// 利用前面定义好的
 
-	double m_dLlength_digu;			// 两根垂线长度
+	double m_dLlength_digu;				// 两根垂线长度
 	double m_dRlength_digu;
-	double m_dDigu_down;		// 骶骨向下偏位
+	double m_dDigu_down;				// 骶骨向下偏位
+
+	CString m_digu_diagnose;			// 骶骨诊断结果
 // 辅助变量
 private:
-	CString m_digu_diagnose;		// 骶骨诊断结果
+	CString m_csDigu_remind[20];		// 骶骨操作提示
 
 ////////////////////////////////////////////////////////////
 // 辅助函数
@@ -160,7 +163,7 @@ private:
 	// 初始化各变量
 	void initParam();
 	// 针对提示语句，对当前步骤的语句进行高亮
-	void remindColor(int op_type);
+	void remindColor();
 
 public:
 		double m_edit;
