@@ -61,6 +61,7 @@ public:
 
 // 通用参数
 private:
+	bool m_bNeedSave;
 	int m_opType;
 	bool m_bLButtonDown; //记录是否按下了鼠标左键
 	int m_curStep;				// 当前操作步骤
@@ -193,4 +194,5 @@ public:
 	afx_msg void OnBnClickedButtonOp1();
 	afx_msg void OnBnClickedButtonOp2();
 	afx_msg void OnBnClickedButtonOp3();
+	afx_msg void OnBnClickedCancel();
 };

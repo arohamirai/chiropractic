@@ -75,10 +75,6 @@ END_MESSAGE_MAP()
 
 CchiropracticDlg::CchiropracticDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(IDD_CHIROPRACTIC_DIALOG, pParent)
-	, m_edit(0)
-	, m_ctrlWidth(1065)
-	, m_ctrlHeight(710)
-
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -117,6 +113,7 @@ BEGIN_MESSAGE_MAP(CchiropracticDlg, CDialogEx)
 	ON_WM_LBUTTONUP()
 	ON_WM_RBUTTONDOWN()
 	ON_WM_MOUSEWHEEL()
+	ON_BN_CLICKED(IDCANCEL, &CchiropracticDlg::OnBnClickedCancel)
 END_MESSAGE_MAP()
 // CchiropracticDlg 消息处理程序
 BOOL CchiropracticDlg::OnInitDialog()
@@ -142,13 +139,31 @@ BOOL CchiropracticDlg::OnInitDialog()
 			pSysMenu->AppendMenu(MF_STRING, IDM_ABOUTBOX, strAboutMenu);
 		}
 	}
-
 	// 设置此对话框的图标。  当应用程序主窗口不是对话框时，框架将自动
 	//  执行此操作
 	SetIcon(m_hIcon, TRUE);			// 设置大图标
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
-
 	// TODO: 在此添加额外的初始化代码
+	// 尺寸
+	m_Combo.AddString(_T("14x17"));
+	m_Combo.AddString(_T("7x8.5"));
+	m_Combo.AddString(_T("手动输入尺寸..."));
+	// 默认14x17尺寸
+	int nIndex = m_Combo.FindStringExact(0, _T("14x17"));
+	if (nIndex != CB_ERR)
+		m_Combo.SetCurSel(nIndex);
+	// 更新下尺度变量
+	OnCbnSelchangeCombo1();
+	// 操作提示控件
+	m_remind1.SetBkColor(RGB(0, 255, 0));
+	m_remind1.SetForeColor(RGB(255, 0, 0));
+	m_remind1.SetTextFont(200, _T("宋体"));
+	m_remind1.SetWindowText(_T("请先加载图像！"));
+	// 设置图片控件尺寸
+	m_ctrlWidth = 1280;
+	m_ctrlHeight = 960;
+	GetDlgItem(IDC_PICTURE)->SetWindowPos(NULL, 0, 0, m_ctrlWidth, m_ctrlHeight, SWP_NOMOVE); //固定大小的窗口
+	// 参数初始化
 	initParam();
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -479,10 +494,57 @@ void CchiropracticDlg::OnLButtonUp(UINT nFlags, CPoint point) //相对于窗口�
 	pt.y = pt.y / m_zoom - m_imgY;
 	if (pt.x < 0 || pt.y < 0 || pt.x > m_srcImg.cols || pt.y > m_srcImg.rows)
 		return;
-
+	// 零、截图操作
 	if (m_opType == DRAW_RECT)
 	{
+		m_p2 = pt;
+		// m_p2位于m_p1 左上角
+		if (m_p1.x > m_p2.x && m_p1.y > m_p2.y)
+		{
+			cv::Point t;
+			t = m_p1;
+			m_p1 = m_p2;
+			m_p2 = t;
+		}
+		// m_p2位于m_p1 左下角
+		else if (m_p1.x > m_p2.x && m_p1.y < m_p2.y)
+		{
+			cv::Point t1,t2;
+			t1.x = m_p2.x;
+			t1.y = m_p1.y;
+			t2.x = m_p1.x;
+			t2.y = m_p2.y;
 
+			m_p1 = t1;
+			m_p2 = t2;
+		}
+		// m_p2位于m_p1 右上角
+		else if (m_p1.x < m_p2.x && m_p1.y > m_p2.y)
+		{
+			cv::Point t1, t2;
+			t1.x = m_p1.x;
+			t1.y = m_p2.y;
+			t2.x = m_p2.x;
+			t2.y = m_p1.y;
+			m_p1 = t1;
+			m_p2 = t2;
+		}
+		// m_p2位于m_p1 右下角
+		else if (m_p1.x < m_p2.x && m_p1.y < m_p2.y)
+		{
+			m_p2 = pt;
+		}
+		cv::Rect rect;
+		rect.x = m_p1.x;
+		rect.y = m_p1.y;
+		rect.width = m_p2.x - m_p1.x;
+		rect.height = m_p2.y - m_p1.y;
+
+		m_srcImg(rect).copyTo(m_srcImg);   // 获取选取区域
+		resize(m_maskImg, m_maskImg, m_srcImg.size());
+		m_maskImg.setTo(0);
+		resize(m_maskShowImg, m_maskShowImg, m_maskImg.size());
+		m_maskShowImg.setTo(0);
 	}
 //===============================================================================================================
 	// 一、髂骨半脱位
@@ -725,6 +787,9 @@ void CchiropracticDlg::OnLButtonUp(UINT nFlags, CPoint point) //相对于窗口�
 		}
 
 		++m_curStep;
+		m_bNeedSave = true;
+		//有新操作后就不能再返回了
+		cv::vector<logInfo>().swap(m_vecDelLog);
 		remindColor();
 	} /* 一、髂骨半脱位 */
 //===============================================================================================================
@@ -1005,12 +1070,12 @@ void CchiropracticDlg::OnLButtonUp(UINT nFlags, CPoint point) //相对于窗口�
 			//OnRButtonDown(NULL, NULL);
 		}
 		++m_curStep;
+		m_bNeedSave = true;
+		//有新操作后就不能再返回了
+		cv::vector<logInfo>().swap(m_vecDelLog);
 		remindColor();
 	}// 二、 骶骨半脱位
 	Invalidate();
-
-	//有新操作后就不能再返回了
-	cv::vector<logInfo>().swap(m_vecDelLog); 
 	CDialogEx::OnLButtonUp(nFlags, point);
 }
 // 撤销
@@ -1292,10 +1357,14 @@ BOOL CchiropracticDlg::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt) // 相
 void CchiropracticDlg::OnCbnSelchangeCombo1()
 {
 	// TODO: 在此添加控件通知处理程序代码
+	if (m_srcImg.empty())
+	{
+		MessageBox(_T("请先载入图像！"));
+		return;
+	}
 	int nIndex = m_Combo.GetCurSel();
 	CString strText;
 	m_Combo.GetLBText(nIndex, strText);
-
 	// 只是为了调整换算比例尺
 	if (strText == _T("14x17"))  
 	{
@@ -1383,6 +1452,11 @@ void CchiropracticDlg::Draw(CDC *pDC)
 
 void CchiropracticDlg::OnBnClickedButton11()
 {
+	if (m_srcImg.empty())
+	{
+		MessageBox(_T("请先载入图像！"));
+		return;
+	}
 	// TODO: 在此添加控件通知处理程序代码
 	CFileDialog dlg1(
 		FALSE, _T("*.bmp|*.jpeg"),
@@ -1399,12 +1473,11 @@ void CchiropracticDlg::OnBnClickedButton11()
 	/*int len = WideCharToMultiByte(CP_ACP, 0, mPath, -1, NULL, 0, NULL, NULL);
 	char *ptxtTemp = new char[len + 1];
 	WideCharToMultiByte(CP_ACP, 0, mPath, -1, ptxtTemp, len, NULL, NULL);*/
-
 	char *ptxtTemp = mPath.GetBuffer(mPath.GetLength());
 
 	cv::Mat saveImg;
 	saveImg = m_srcImg.clone();
-	saveImg.setTo(cv::Scalar(255, 0, 0), m_maskImg);
+	saveImg.setTo(m_lineColor, m_maskImg);
 	imwrite(ptxtTemp, saveImg);
 	//delete[] ptxtTemp;
 }
@@ -1633,29 +1706,10 @@ CString CchiropracticDlg::diagnose(int op_type, cv::Point &pose)
 }
 
 void CchiropracticDlg::initParam()
-{																					  // 尺寸
-	m_Combo.AddString(_T("14x17"));
-	m_Combo.AddString(_T("7x8.5"));
-	m_Combo.AddString(_T("手动输入尺寸..."));
-	int nIndex = m_Combo.FindStringExact(0, _T("尺寸"));
-	if (nIndex != CB_ERR)
-		m_Combo.SetCurSel(nIndex);
-
-	m_remind1.SetBkColor(RGB(0, 255, 0));
-	m_remind1.SetForeColor(RGB(255, 0, 0));
-	m_remind1.SetTextFont(200, _T("宋体"));
-
-	m_remind1.SetWindowText(_T("请先加载图片！"));
-
-	GetDlgItem(IDC_PICTURE)->SetWindowPos(NULL, 0, 0, m_ctrlWidth, m_ctrlHeight, SWP_NOMOVE); //固定大小的窗口
-
-	// 提示语句框设置
-	m_remind1.SetBkColor(RGB(0, 255, 0));
-	m_remind1.SetForeColor(RGB(255, 0, 0));
-	m_remind1.SetTextFont(200, _T("宋体"));
-
-
-
+{	
+	// debug 变量
+	m_edit = 0;
+	// 有用变量
 	m_bLButtonDown = false;
 	m_zoom = 1.0f;
 	m_imgX = 0.0f;
@@ -1665,8 +1719,28 @@ void CchiropracticDlg::initParam()
 
 	m_dWidthScale = 1.0;
 	m_dHeightScale = 1.0;
-	m_lineWidth = 1;			// 线宽
+								// 画图相关参数
+	m_circleRadius = 3;
+	m_lineWidth = 1;													// 线的宽度
+	m_maskColor = cv::Scalar(255, 255, 255);							// 蒙版颜色
+	m_lineColor = cv::Scalar(255, 255, 255);							// 线的颜色, 白色
+	m_circleColor = cv::Scalar(255, 0, 0);								// 小圆点的颜色， 绿色
+	m_infoColor = cv::Scalar(0, 255, 0);								// CT片信息的文字颜色，黄色
+	m_diagnoseColor = cv::Scalar(255, 0, 0);							// 诊断结果字体颜色，绿色
+	m_measureColor = cv::Scalar(0, 0, 255);								// 划片时测量的值的颜色，红色
+	m_fontTypeOfInfo = cv::FONT_HERSHEY_COMPLEX;						// CT片信息字体类型
+	m_dFontSizeOfInfo = 1;												// CT片信息字体大小
+	m_fontThicknessOfInfo = 2;											// CT片信息字体宽度
+	m_fontTypeOfMeasure = cv::FONT_HERSHEY_COMPLEX;						// 划片时测量的值得字体类型
+	m_dFontSizeOfMeasure = 1;											// 划片时测量的值得字体大小
+	m_fontThicknessOfMeasure = 2;										// 划片时测量的值得宽度
+	m_fontTypeOfDiagnose = cv::FONT_HERSHEY_COMPLEX;					// 诊断结果的字体类型
+	m_dFontSizeOfDiagnose = 1;											// 诊断结果的字体大小
+	m_fontThicknessOfDiagnose = 3;										// 诊断结果字体宽度
 
+
+
+	// 髂骨操作提示语句
 	m_csQiagu_remind[0] = _T("1.1 做股骨头线——选择左侧股骨头的最高点。");
 	m_csQiagu_remind[1] = _T("1.2 做股骨头线——选择右侧股骨头的最高点。");
 	m_csQiagu_remind[2] = _T("2.1 测左无名骨长度——选择左侧髂嵴的最高点。");
@@ -1678,7 +1752,7 @@ void CchiropracticDlg::initParam()
 	m_csQiagu_remind[8] = _T("6.1 测量棘突中央到左侧椎体边缘的距离——选择左侧椎体边缘点。");
 	m_csQiagu_remind[9] = _T("6.2 测量棘突中央到右侧椎体边缘的距离——选择右侧椎体边缘点。");
 	m_csQiagu_remind[10] = _T("完成。");
-	
+	// 骶骨操作提示语句
 	m_csDigu_remind[0] = _T("1.1 做股骨头线——选择左侧股骨头的最高点。");
 	m_csDigu_remind[1] = _T("1.2 做股骨头线——选择右侧股骨头的最高点。");
 	m_csDigu_remind[2] = _T("2. 做骶骨中线——选择第一骶骨棘突顶点。");
@@ -1689,26 +1763,6 @@ void CchiropracticDlg::initParam()
 	m_csDigu_remind[7] = _T("6.1 测量棘突中央到左侧椎体边缘的距离——选择左侧椎体边缘点。");
 	m_csDigu_remind[8] = _T("6.2 测量棘突中央到右侧椎体边缘的距离——选择右侧椎体边缘点。");
 	m_csDigu_remind[9] = _T("完成。");
-
-
-	// 画图相关参数
-	m_circleRadius = 3;
-	m_lineWidth = 1;													// 线的宽度
-	m_maskColor = cv::Scalar(255, 255, 255);									// 蒙版颜色
-	m_lineColor = cv::Scalar(255, 255, 255);							// 线的颜色, 白色
-	m_circleColor = cv::Scalar(255, 0, 0);								// 小圆点的颜色， 绿色
-	m_infoColor = cv::Scalar(0, 255, 0);								// CT片信息的文字颜色，黄色
-	m_diagnoseColor = cv::Scalar(255, 0, 0);							// 诊断结果字体颜色，绿色
-	m_measureColor = cv::Scalar( 0, 0, 255);							// 划片时测量的值的颜色，红色
-	m_fontTypeOfInfo = cv::FONT_HERSHEY_COMPLEX;						// CT片信息字体类型
-	m_dFontSizeOfInfo = 1;												// CT片信息字体大小
-	m_fontThicknessOfInfo = 2;											// CT片信息字体宽度
-	m_fontTypeOfMeasure = cv::FONT_HERSHEY_COMPLEX;						// 划片时测量的值得字体类型
-	m_dFontSizeOfMeasure = 1;											// 划片时测量的值得字体大小
-	m_fontThicknessOfMeasure = 2;										// 划片时测量的值得宽度
-	m_fontTypeOfDiagnose = cv::FONT_HERSHEY_COMPLEX;					// 诊断结果的字体类型
-	m_dFontSizeOfDiagnose = 1;											// 诊断结果的字体大小
-	m_fontThicknessOfDiagnose = 3;											// 诊断结果字体宽度
 }
 
 // 针对提示语句，对当前步骤的语句进行高亮
@@ -1875,4 +1929,20 @@ void CchiropracticDlg::OnBnClickedButtonOp3()
 void CchiropracticDlg::OnBnClickedButton13()
 {
 	// TODO: 在此添加控件通知处理程序代码
+}
+
+
+void CchiropracticDlg::OnBnClickedCancel()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	if (m_bNeedSave)
+	{
+		INT_PTR ret = ::MessageBox(NULL, _T("图像有新操作还没保存，你确定不保存退出？"), _T("提示！"), MB_YESNO);
+		if (ret == IDYES)
+			CDialogEx::OnCancel();
+		else
+			return;
+	}
+	
+	
 }
