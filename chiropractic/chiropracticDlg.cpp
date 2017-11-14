@@ -114,6 +114,7 @@ BEGIN_MESSAGE_MAP(CchiropracticDlg, CDialogEx)
 	ON_WM_RBUTTONDOWN()
 	ON_WM_MOUSEWHEEL()
 	ON_BN_CLICKED(IDCANCEL, &CchiropracticDlg::OnBnClickedCancel)
+	ON_BN_CLICKED(IDC_BUTTON15, &CchiropracticDlg::OnBnClickedButton15)
 END_MESSAGE_MAP()
 // CchiropracticDlg 消息处理程序
 BOOL CchiropracticDlg::OnInitDialog()
@@ -409,6 +410,13 @@ void CchiropracticDlg::OnLButtonDown(UINT nFlags, CPoint point)//这些坐标总
 		//m_p1.x = m_p1.x / m_zoom - m_imgX;
 		//m_p1.y = m_p1.y / m_zoom - m_imgY;
 	}
+	// 手动测量模式
+	if (m_opType == DRAW_MEASURE)
+	{
+		/*++m_recordFirstPoint;
+		m_p1 = pt;*/
+	}
+
 	if (nFlags & MK_LBUTTON && (m_opType == -1))
 	{
 			m_mouseDown.X = point.x;
@@ -449,7 +457,35 @@ void CchiropracticDlg::OnMouseMove(UINT nFlags, CPoint point)
 		int r = 1;
 		cv::rectangle(m_maskShowImg, m_p1, pt, cv::Scalar(255), r);
 		Invalidate();
-	} 
+	}
+	else if (m_opType == DRAW_MEASURE)
+	{
+		if (m_recordFirstPoint == 0) // 第一点都没记录
+		{
+			cv::circle(m_maskShowImg, pt, m_circleRadius, m_maskColor, -1);
+		}
+		else
+		{
+			// 第一点已经记录时，m_recordFirstPoint == 1
+			m_p2 = pt;
+			//画直线
+			cv::circle(m_maskShowImg, m_p1, m_circleRadius, m_maskColor, -1);
+			cv::circle(m_maskShowImg, m_p2, m_circleRadius, m_maskColor, -1);
+			cv::line(m_maskShowImg, m_p1, m_p2, m_lineColor, m_lineWidth);
+			double w = m_dWidthScale * std::sqrt((m_p2.x - m_p1.x)*(m_p2.x - m_p1.x));
+			double h = m_dHeightScale * std::sqrt((m_p2.y - m_p1.y)*(m_p2.y - m_p1.y));
+			double length = std::sqrt(w*w + h*h);
+			char text[20] = { 0 };
+			sprintf_s(text, "%.1fmm", length);
+			// 计算放置位置
+			cv::Point center = cv::Point((m_p2.x + m_p1.x) / 2, (m_p2.y + m_p1.y) / 2);
+			int baseline = 0;
+			cv::Size sz_wh = cv::getTextSize(text, m_fontTypeOfMeasure, m_dFontSizeOfMeasure, m_fontThicknessOfMeasure, &baseline);
+			cv::Point pose = cv::Point(center.x - sz_wh.width / 2, center.y);
+			// 放置结果
+			cv::putText(m_maskShowImg, text, pose, m_fontTypeOfMeasure, m_dFontSizeOfMeasure, m_maskColor, m_fontThicknessOfMeasure);
+		}
+	}
 	else if (m_opType == DIAG_QIAGU)			// 髂骨诊断
 	{
 		cv::circle(m_maskShowImg, pt, 3, m_maskColor, -1);
@@ -514,7 +550,7 @@ void CchiropracticDlg::OnLButtonUp(UINT nFlags, CPoint point) //相对于窗口�
 		// m_p2位于m_p1 左下角
 		else if (m_p1.x > m_p2.x && m_p1.y < m_p2.y)
 		{
-			cv::Point t1,t2;
+			cv::Point t1, t2;
 			t1.x = m_p2.x;
 			t1.y = m_p1.y;
 			t2.x = m_p1.x;
@@ -550,6 +586,47 @@ void CchiropracticDlg::OnLButtonUp(UINT nFlags, CPoint point) //相对于窗口�
 		m_maskImg.setTo(0);
 		resize(m_maskShowImg, m_maskShowImg, m_maskImg.size());
 		m_maskShowImg.setTo(0);
+	}
+	else if (m_opType == DRAW_MEASURE)
+	{
+		m_recordFirstPoint += 1;
+		if (m_recordFirstPoint == 1)
+		{
+			m_p1 = pt;
+			return;
+		}
+		else if (m_recordFirstPoint == 2)
+		{
+			m_p2 = pt;
+			m_recordFirstPoint = 0;
+		}
+		logInfo log = { 0 };
+		//画直线
+		cv::circle(m_maskImg, m_p1, m_circleRadius, m_maskColor, -1);
+		cv::circle(m_maskImg, m_p2, m_circleRadius, m_maskColor, -1);
+		cv::line(m_maskImg, m_p1, m_p2, m_maskColor, m_lineWidth);
+		double w = m_dWidthScale * std::sqrt((m_p2.x - m_p1.x)*(m_p2.x - m_p1.x));
+		double h = m_dHeightScale * std::sqrt((m_p2.y - m_p1.y)*(m_p2.y - m_p1.y));
+		double length = std::sqrt(w*w + h*h);
+		//char text[20] = { 0 };
+		sprintf_s(log.text[0], "%.1fmm", length);
+		// 计算放置位置
+		cv::Point center = cv::Point((m_p2.x + m_p1.x) / 2, (m_p2.y + m_p1.y) / 2);
+		int baseline = 0;
+		cv::Size sz_wh = cv::getTextSize(log.text[0], m_fontTypeOfMeasure, m_dFontSizeOfMeasure, m_fontThicknessOfMeasure, &baseline);
+		cv::Point pose = cv::Point(center.x - sz_wh.width / 2, center.y);
+		// 放置结果
+		cv::putText(m_maskImg, log.text[0], pose, m_fontTypeOfMeasure, m_dFontSizeOfMeasure, m_maskColor, m_fontThicknessOfMeasure);
+		// 保存操作
+		log.p[0] = m_p1;
+		log.p[1] = m_p2;
+		log.center[0] = pose;
+		log.op = DRAW_LINE;
+		m_vecLog.push_back(log);
+
+		m_bNeedSave = true;
+		//有新操作后就不能再返回了
+		cv::vector<logInfo>().swap(m_vecDelLog);
 	}
 //===============================================================================================================
 	// 一、髂骨半脱位
@@ -1133,8 +1210,23 @@ void CchiropracticDlg::OnBnClickedButton8()
 	if (m_vecLog.size() == 0) return;
 	m_maskImg.setTo(0);
 	m_maskShowImg.setTo(0);
+	if (m_opType == DRAW_MEASURE)
+	{
+		logInfo log = { 0 };
+		log = m_vecLog.back();
+		m_vecDelLog.push_back(log);
+		m_vecLog.pop_back();
 
-	if (m_opType == DIAG_QIAGU)
+		for (vector<logInfo>::iterator it = m_vecLog.begin(); it != m_vecLog.end(); ++it)
+		{
+			logInfo log = *it;
+			cv::circle(m_maskImg, log.p[0], m_circleRadius, m_maskColor, -1);
+			cv::circle(m_maskImg, log.p[1], m_circleRadius, m_maskColor, -1);
+			cv::line(m_maskImg, log.p[0], log.p[1], m_maskColor, m_lineWidth);
+			cv::putText(m_maskImg, log.text[0], log.center[0], m_fontTypeOfMeasure, m_dFontSizeOfMeasure, m_maskColor, m_fontThicknessOfMeasure);
+		}
+	}
+	else if (m_opType == DIAG_QIAGU)
 	{
 		logInfo log = { 0 };
 		log = m_vecLog.back();
@@ -1262,9 +1354,15 @@ void CchiropracticDlg::OnBnClickedButton9()
 	log = m_vecDelLog.back();
 	m_vecLog.push_back(log);
 	m_vecDelLog.pop_back();
-
+	if (m_opType == DRAW_MEASURE)
+	{
+		cv::circle(m_maskImg, log.p[0], m_circleRadius, m_maskColor, -1);
+		cv::circle(m_maskImg, log.p[1], m_circleRadius, m_maskColor, -1);
+		cv::line(m_maskImg, log.p[0], log.p[1], m_maskColor, m_lineWidth);
+		cv::putText(m_maskImg, log.text[0], log.center[0], m_fontTypeOfMeasure, m_dFontSizeOfMeasure, m_maskColor, m_fontThicknessOfMeasure);
+	}
 	// 添加回操作
-	if (m_opType == DIAG_QIAGU)
+	else if (m_opType == DIAG_QIAGU)
 	{
 		if (log.step == 1)
 			m_curStep += 2;
@@ -1768,6 +1866,7 @@ CString CchiropracticDlg::diagnose(int op_type, cv::Point &pose)
 
 void CchiropracticDlg::initParam()
 {	
+	m_recordFirstPoint = 0;
 	// debug 变量
 	m_edit = 0;
 	// 有用变量
@@ -1829,7 +1928,7 @@ void CchiropracticDlg::initParam()
 // 针对提示语句，对当前步骤的语句进行高亮
 void CchiropracticDlg::remindColor()
 {
-	if (m_opType == -1)
+	if (m_opType == -1 || m_opType == DRAW_MEASURE || m_opType == DRAW_RECT)
 		return;
 	m_remind1.SetWindowText(m_csRemind[m_curStep].GetString());
 	//if (m_opType == DIAG_QIAGU)
@@ -2005,4 +2104,16 @@ void CchiropracticDlg::OnBnClickedCancel()
 			return;
 	}
 	CDialogEx::OnCancel();
+}
+
+
+void CchiropracticDlg::OnBnClickedButton15()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	if (m_srcImg.empty())
+	{
+		MessageBox(_T("请先载入图像！"));
+		return;
+	}
+	m_opType = DRAW_MEASURE;
 }

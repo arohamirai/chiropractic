@@ -11,7 +11,7 @@
 
 enum drawTpye{ DRAW_LINE = 1, DRAW_DIAGNOSE, DRAW_LINE_MEASURE, DRAW_LINE_VERTICALLINE,DRAW_DIGU_LINE,DRAW_CIRCLE
 };
-enum opType {DRAW_RECT = 1,DIAG_QIAGU ,DIAG_DIGU
+enum opType {DRAW_RECT = 1, DRAW_MEASURE,DIAG_QIAGU ,DIAG_DIGU
 };
 typedef struct _logLnfo {
 	//cv::Point p1;
@@ -101,8 +101,6 @@ private:
 	double m_dFontSizeOfDiagnose;			// 诊断结果的字体大小
 	int m_fontThicknessOfDiagnose;			// 诊断结果字体宽度
 	CString *m_csRemind;					// 操作提示
-
-
 // 辅助变量
 	REAL m_zoom;  //缩放系数
 	//CRect m_Rect; //对话框的矩形区域
@@ -110,6 +108,9 @@ private:
 	REAL m_imgY; //图片左上角Y轴偏移量
 	PointF m_PtStart;    //按下鼠标左键，记录当前的m_imgX,m_imgY
 	PointF m_mouseDown;  //按下鼠标左键时，鼠标在图片控件中的位置；
+///////////////////////////////////////////////////////////
+// DRAW_MEASURE
+	int m_recordFirstPoint; // 是否记录了第一个点
 
 ////////////////////////////////////////////////////////////////////////////////
 // 一、髂骨半脱位
@@ -195,4 +196,5 @@ public:
 	afx_msg void OnBnClickedButtonOp2();
 	afx_msg void OnBnClickedButtonOp3();
 	afx_msg void OnBnClickedCancel();
+	afx_msg void OnBnClickedButton15();
 };
