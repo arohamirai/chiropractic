@@ -214,6 +214,7 @@
     <None Include="res\Register.rc2" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="C:\Users\lenovo\Desktop\hit.png" />
     <Image Include="res\Register.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

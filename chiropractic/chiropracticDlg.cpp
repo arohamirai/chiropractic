@@ -144,6 +144,8 @@ BOOL CchiropracticDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// 设置大图标
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 	// TODO: 在此添加额外的初始化代码
+	// 参数初始化
+	initParam();
 	// 尺寸
 	m_Combo.AddString(_T("14x17"));
 	m_Combo.AddString(_T("7x8.5"));
@@ -152,19 +154,20 @@ BOOL CchiropracticDlg::OnInitDialog()
 	int nIndex = m_Combo.FindStringExact(0, _T("14x17"));
 	if (nIndex != CB_ERR)
 		m_Combo.SetCurSel(nIndex);
+	// 未载入图像前，禁止选择
+	GetDlgItem(IDC_COMBO1)->EnableWindow(FALSE);
 	// 更新下尺度变量
-	OnCbnSelchangeCombo1();
+	//OnCbnSelchangeCombo1();
 	// 操作提示控件
 	m_remind1.SetBkColor(RGB(0, 255, 0));
 	m_remind1.SetForeColor(RGB(255, 0, 0));
 	m_remind1.SetTextFont(200, _T("宋体"));
 	m_remind1.SetWindowText(_T("请先加载图像！"));
 	// 设置图片控件尺寸
-	m_ctrlWidth = 1280;
-	m_ctrlHeight = 960;
+	m_ctrlWidth = 1200;
+	m_ctrlHeight = 800;
 	GetDlgItem(IDC_PICTURE)->SetWindowPos(NULL, 0, 0, m_ctrlWidth, m_ctrlHeight, SWP_NOMOVE); //固定大小的窗口
-	// 参数初始化
-	initParam();
+	GetDlgItem(IDC_REMIND1)->SetWindowPos(NULL, 0, 800, m_ctrlWidth,32, SWP_NOMOVE);
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 void CchiropracticDlg::OnSysCommand(UINT nID, LPARAM lParam)
@@ -271,6 +274,8 @@ void CchiropracticDlg::OnBnClickedButton2()
 	h = 14 * 25.4;
 	m_dWidthScale = w / m_srcImg.cols;
 	m_dHeightScale = h / m_srcImg.rows;
+	// 允许调整尺寸
+	GetDlgItem(IDC_COMBO1)->EnableWindow(TRUE);
 	m_remind1.SetWindowText(_T("请选择操作类型！"));
 
 }
@@ -1368,7 +1373,7 @@ void CchiropracticDlg::OnCbnSelchangeCombo1()
 	// 只是为了调整换算比例尺
 	if (strText == _T("14x17"))  
 	{
-		int w, h; //实际尺寸(mm或英寸)
+		double w, h; //实际尺寸(mm或英寸)
 		w = 17*25.4;
 		h = 14*25.4;
 		m_dWidthScale = w / m_srcImg.cols;
@@ -1376,7 +1381,7 @@ void CchiropracticDlg::OnCbnSelchangeCombo1()
 	}
 	else if (strText == _T("7x8.5"))
 	{
-		int w, h; //实际尺寸(mm或英寸)
+		double w, h; //实际尺寸(mm或英寸)
 		w = 8.5*25.4;
 		h = 7*25.4;
 		m_dWidthScale = w / m_srcImg.cols;
@@ -1480,6 +1485,7 @@ void CchiropracticDlg::OnBnClickedButton11()
 	saveImg.setTo(m_lineColor, m_maskImg);
 	imwrite(ptxtTemp, saveImg);
 	//delete[] ptxtTemp;
+	m_bNeedSave = false;
 }
 
 
@@ -1738,8 +1744,6 @@ void CchiropracticDlg::initParam()
 	m_dFontSizeOfDiagnose = 1;											// 诊断结果的字体大小
 	m_fontThicknessOfDiagnose = 3;										// 诊断结果字体宽度
 
-
-
 	// 髂骨操作提示语句
 	m_csQiagu_remind[0] = _T("1.1 做股骨头线——选择左侧股骨头的最高点。");
 	m_csQiagu_remind[1] = _T("1.2 做股骨头线——选择右侧股骨头的最高点。");
@@ -1943,6 +1947,5 @@ void CchiropracticDlg::OnBnClickedCancel()
 		else
 			return;
 	}
-	
-	
+	CDialogEx::OnCancel();
 }

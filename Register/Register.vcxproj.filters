@@ -65,5 +65,8 @@
     <Image Include="res\Register.ico">
       <Filter>资源文件</Filter>
     </Image>
+    <Image Include="C:\Users\lenovo\Desktop\hit.png">
+      <Filter>资源文件</Filter>
+    </Image>
   </ItemGroup>
 </Project>
