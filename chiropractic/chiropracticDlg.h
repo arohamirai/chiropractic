@@ -23,7 +23,7 @@ typedef struct _logLnfo {
 	//cv::Point center1;		 // 画直线时所取关键点
 	//cv::Point center2;		// 保存圆、标注线文字、诊断结果文字所在位置。
 	double length;				//测量长度
-	char text[20];			//文字标注（测量长度、诊断结果等）
+	char text[3][20];			//文字标注（测量长度、诊断结果等）
 	int op;					//操作类型
 	int step;
 }logInfo;
@@ -120,8 +120,8 @@ private:
 	double m_dLlength_wuminggu;			// 无名骨长度
 	double m_dRlength_wuminggu;
 	double m_dLength;					// 耻骨联合中线与中心线的距离, 偏中心线左侧为负，偏中心线右侧为正
-	double m_dLlength_biaozhu;			// 用于诊断放置位置
-	double m_dRlength_biaozhu;
+	double m_dLlength_xiaguanjie;			// 下关节突影长度
+	double m_dRlength_xiaguanjie;
 
 	CString m_qiagu_diagnose;			// 髂骨诊断结果
 // 辅助变量
