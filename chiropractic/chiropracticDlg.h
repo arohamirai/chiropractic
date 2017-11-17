@@ -9,9 +9,9 @@
 #include "MyEdit.h"
 
 
-enum drawTpye{ DRAW_LINE = 1, DRAW_DIAGNOSE, DRAW_LINE_MEASURE, DRAW_LINE_VERTICALLINE,DRAW_DIGU_LINE,DRAW_CIRCLE
+enum drawTpye{ DRAW_LINE = 1, DRAW_DIAGNOSE, DRAW_LINE_MEASURE, DRAW_LINE_VERTICALLINE,DRAW_DIGU_LINE,DRAW_CIRCLE,DRAW_YAOZHUI_MEASURE
 };
-enum opType {DRAW_RECT = 1, DRAW_MEASURE,DIAG_QIAGU ,DIAG_DIGU
+enum opType {DRAW_RECT = 1, DRAW_MEASURE,DIAG_QIAGU ,DIAG_DIGU, DIAG_YAOZHUI, DIAG_YAODIJIAO
 };
 typedef struct _logLnfo {
 	//cv::Point p1;
@@ -22,7 +22,7 @@ typedef struct _logLnfo {
 	cv::Point center[5];
 	//cv::Point center1;		 // 画直线时所取关键点
 	//cv::Point center2;		// 保存圆、标注线文字、诊断结果文字所在位置。
-	double length;				//测量长度
+	double length[2];				//测量长度
 	char text[3][20];			//文字标注（测量长度、诊断结果等）
 	int op;					//操作类型
 	int step;
@@ -145,12 +145,32 @@ private:
 private:
 	CString m_csDigu_remind[20];		// 骶骨操作提示
 
+///////////////////////////////////////////////////////////
+// 腰椎诊断
+private:
+	double m_grad[2];									// 左右两条直线斜率 [0]--左，[1]--右
+	double m_bias[2];									// 左右两条直线偏置 [0]--左，[1]--右
+	std::vector<cv::Point> m_vecCpLeft;						// 左边直线交点
+	std::vector<cv::Point> m_vecCpRight;					// 右边直线交点
+	std::vector<double> m_vecLeftMeasure;					// 左边截距
+	std::vector<double> m_vecRightMeasure;				// 右边截距
+
+	std::vector<CString> m_yaozhui_diagnose;			// 腰椎诊断结果
+// 辅助变量
+private:
+	CString m_csaoZhui_remind[20];		// 腰椎操作提示
+	CString m_csYaoZhui_remind[20];		// 腰椎操作提示
+
+// 腰骶角诊断
+	CString m_csYaoDiJiao_remind[20];		// 腰椎操作提示
 ////////////////////////////////////////////////////////////
 // 辅助函数
 private:
+	// 计算两条直线的交点
+	cv::Point intersect(cv::Point aa, cv::Point bb, cv::Point cc, cv::Point dd);
 	// 判断两条直线是否相交
-	bool intersect(CvPoint aa, CvPoint bb, CvPoint cc, CvPoint dd);
-	// 用于判断两条直线是否平行（比较斜率是否相等）
+	//bool intersect(CvPoint aa, CvPoint bb, CvPoint cc, CvPoint dd);
+	 // 用于判断两条直线是否平行（比较斜率是否相等）
 	double determinant(double v1, double v2, double v3, double v4);
 	// 做线的延长线
 	void  lineExt(double grad, cv::Point center, double lenth_lt, double lenth_rb, cv::Point &p_l, cv::Point &p_r);
@@ -197,4 +217,5 @@ public:
 	afx_msg void OnBnClickedButtonOp3();
 	afx_msg void OnBnClickedCancel();
 	afx_msg void OnBnClickedButton15();
+	afx_msg void OnBnClickedButtonOp4();
 };

@@ -129,7 +129,15 @@ BOOL CchiropracticApp::InitInstance()
 	if (file.Open(_T("lisense.dat"), CFile::modeRead, &e))
 	{
 		CArchive ar(&file, CArchive::load);
-		ar >> resfile;
+		try
+		{
+			ar >> resfile;
+		}
+		catch (CFileException *e)
+		{
+			::MessageBox(NULL,_T("读取许可证文件错误，程序将退出！"),_T("错误"),MB_OK);
+			return FALSE;
+		}
 		file.Close();
 	}
 	else
