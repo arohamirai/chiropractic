@@ -9,7 +9,8 @@
 #include "MyEdit.h"
 
 
-enum drawTpye{ DRAW_LINE = 1, DRAW_DIAGNOSE, DRAW_LINE_MEASURE, DRAW_LINE_VERTICALLINE,DRAW_DIGU_LINE,DRAW_CIRCLE,DRAW_YAOZHUI_MEASURE
+enum drawTpye{ DRAW_LINE = 1, DRAW_DIAGNOSE, DRAW_LINE_MEASURE, DRAW_LINE_VERTICALLINE,DRAW_DIGU_LINE,DRAW_CIRCLE,DRAW_YAOZHUI_MEASURE,
+	DRAW_BASE_LINE
 };
 enum opType {DRAW_RECT = 1, DRAW_MEASURE,DIAG_QIAGU ,DIAG_DIGU, DIAG_YAOZHUI, DIAG_YAODIJIAO
 };
@@ -150,10 +151,10 @@ private:
 private:
 	double m_grad[2];									// 左右两条直线斜率 [0]--左，[1]--右
 	double m_bias[2];									// 左右两条直线偏置 [0]--左，[1]--右
-	std::vector<cv::Point> m_vecCpLeft;						// 左边直线交点
-	std::vector<cv::Point> m_vecCpRight;					// 右边直线交点
-	std::vector<double> m_vecLeftMeasure;					// 左边截距
-	std::vector<double> m_vecRightMeasure;				// 右边截距
+	std::vector<std::vector<cv::Point>> m_vecCpPoint;	// 直线与边界直线的交点
+	std::vector<std::vector<double>> m_vecMeasure;		// 截距
+	std::vector<std::vector<cv::Point>> m_vecCpPointDel;	// 直线与边界直线的交点
+	std::vector<std::vector<double>> m_vecMeasureDel;		// 截距
 
 	std::vector<CString> m_yaozhui_diagnose;			// 腰椎诊断结果
 // 辅助变量
@@ -162,6 +163,9 @@ private:
 	CString m_csYaoZhui_remind[20];		// 腰椎操作提示
 
 // 腰骶角诊断
+private:
+	double m_grad_yaozhuijiao_x;
+	CString m_YaoDiJiao_diagnose;			// 诊断结果
 	CString m_csYaoDiJiao_remind[20];		// 腰椎操作提示
 ////////////////////////////////////////////////////////////
 // 辅助函数
