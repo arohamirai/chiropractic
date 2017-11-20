@@ -15,7 +15,7 @@
 #include"CvvImage.h"
 #include"InputName.h"
 #include"math.h"
-
+#include "InputText.h"
 
 #include "dcmtk/config/osconfig.h"    /* make sure OS specific configuration is included first */
 #include "dcmtk/ofstd/ofstdinc.h"
@@ -116,6 +116,7 @@ BEGIN_MESSAGE_MAP(CchiropracticDlg, CDialogEx)
 	ON_BN_CLICKED(IDCANCEL, &CchiropracticDlg::OnBnClickedCancel)
 	ON_BN_CLICKED(IDC_BUTTON15, &CchiropracticDlg::OnBnClickedButton15)
 	ON_BN_CLICKED(IDC_BUTTON_OP4, &CchiropracticDlg::OnBnClickedButtonOp4)
+	ON_BN_CLICKED(IDC_BUTTON14, &CchiropracticDlg::OnBnClickedButton14)
 END_MESSAGE_MAP()
 // CchiropracticDlg 消息处理程序
 BOOL CchiropracticDlg::OnInitDialog()
@@ -471,6 +472,13 @@ void CchiropracticDlg::OnMouseMove(UINT nFlags, CPoint point)
 		return;
 
 	m_maskImg.copyTo(m_maskShowImg);// 将已完成的步骤载入
+	if (m_bPutText)
+	{
+		cv::putText(m_maskShowImg, m_strText.GetBuffer(), pt, m_fontTypeOfMeasure, m_dFontSizeOfMeasure, m_maskColor, m_fontThicknessOfMeasure);
+		Invalidate();
+		//CDialogEx::OnMouseMove(nFlags, point);
+		return;  // 如果是放置诊断结果，就不要再往下做了
+	}
 	if ((m_opType == DRAW_RECT) && m_bLButtonDown)		//区域选择
 	{
 		int r = 1;
@@ -554,6 +562,13 @@ void CchiropracticDlg::OnLButtonUp(UINT nFlags, CPoint point) //相对于窗口�
 	pt.y = pt.y / m_zoom - m_imgY;
 	if (pt.x < 0 || pt.y < 0 || pt.x > m_srcImg.cols || pt.y > m_srcImg.rows)
 		return;
+	if (m_bPutText)
+	{
+		cv::putText(m_maskImg, m_strText.GetBuffer(), pt, m_fontTypeOfMeasure, m_dFontSizeOfMeasure, m_maskColor, m_fontThicknessOfMeasure);
+		m_bPutText = false;
+		return;  // 如果是放置诊断结果，就不要再往下做了
+	}
+	
 	// 零、截图操作
 	if (m_opType == DRAW_RECT)
 	{
@@ -1972,7 +1987,7 @@ void CchiropracticDlg::Draw(CDC *pDC)
 {
 	m_srcImg.copyTo(m_zoomImg);  //	拷贝原图
 	m_maskShowImg.setTo(m_maskColor, m_maskImg);
-	m_zoomImg.setTo(m_maskColor, m_maskShowImg);	//绘制
+	m_zoomImg.setTo(cv::Scalar(0,0,255), m_maskShowImg);	//绘制
 	//m_zoomImg.setTo(m_measureColor, m_maskImg);	//绘制直线
 	int width = m_zoomImg.cols;
 	int height = m_zoomImg.rows;
@@ -2023,7 +2038,7 @@ void CchiropracticDlg::OnBnClickedButton11()
 
 	cv::Mat saveImg;
 	saveImg = m_srcImg.clone();
-	saveImg.setTo(m_lineColor, m_maskImg);
+	saveImg.setTo(cv::Scalar(0, 0, 255), m_maskImg);
 	imwrite(ptxtTemp, saveImg);
 	//delete[] ptxtTemp;
 	m_bNeedSave = false;
@@ -2545,4 +2560,17 @@ void CchiropracticDlg::OnBnClickedButtonOp4()
 	m_csRemind = m_csYaoDiJiao_remind;		// 指向骶骨
 	remindColor();
 
+}
+
+
+void CchiropracticDlg::OnBnClickedButton14()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	CInputText dlg;
+	INT_PTR ret = dlg.DoModal();
+	if (ret == IDOK)
+	{
+		m_bPutText = true;
+		m_strText = dlg.m_strText;
+	}
 }

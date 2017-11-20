@@ -200,6 +200,7 @@
     <ClInclude Include="CvvImage.h" />
     <ClInclude Include="InitGdiplus.h" />
     <ClInclude Include="InputName.h" />
+    <ClInclude Include="InputText.h" />
     <ClInclude Include="MyEdit.h" />
     <ClInclude Include="Parameter.h" />
     <ClInclude Include="Register.h" />
@@ -213,6 +214,7 @@
     <ClCompile Include="CvvImage.cpp" />
     <ClCompile Include="InitGdiplus.cpp" />
     <ClCompile Include="InputName.cpp" />
+    <ClCompile Include="InputText.cpp" />
     <ClCompile Include="MyEdit.cpp" />
     <ClCompile Include="Parameter.cpp" />
     <ClCompile Include="Register.cpp" />

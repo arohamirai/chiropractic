@@ -114,6 +114,9 @@ private:
 	int m_recordFirstPoint; // 是否记录了第一个点
 
 ////////////////////////////////////////////////////////////////////////////////
+// 零、手动放置测量结果
+	CString m_strText;
+	bool m_bPutText;
 // 一、髂骨半脱位
 //正经变量
 private:
@@ -222,4 +225,5 @@ public:
 	afx_msg void OnBnClickedCancel();
 	afx_msg void OnBnClickedButton15();
 	afx_msg void OnBnClickedButtonOp4();
+	afx_msg void OnBnClickedButton14();
 };
