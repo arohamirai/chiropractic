@@ -10,9 +10,9 @@
 
 
 enum drawTpye{ DRAW_LINE = 1, DRAW_DIAGNOSE, DRAW_LINE_MEASURE, DRAW_LINE_VERTICALLINE,DRAW_DIGU_LINE,DRAW_CIRCLE,DRAW_YAOZHUI_MEASURE,
-	DRAW_BASE_LINE
+	DRAW_BASE_LINE, DRAW_XIONGZHUI_MEASURE, DRAW_JINGZHUIZHENGMIAN_MEASURE, DRAW_JINGZHUIZHANGKOU_MEASURE
 };
-enum opType {DRAW_RECT = 1, DRAW_MEASURE,DIAG_QIAGU ,DIAG_DIGU, DIAG_YAOZHUI, DIAG_YAODIJIAO
+enum opType {DRAW_RECT = 1, DRAW_MEASURE,DIAG_QIAGU ,DIAG_DIGU, DIAG_YAOZHUI, DIAG_YAODIJIAO,DIAG_XIONGZHUI,DIAG_JINGZHUIZHENGMIAN,DIAG_JINGZHUIZHANGKOU
 };
 typedef struct _logLnfo {
 	//cv::Point p1;
@@ -152,25 +152,54 @@ private:
 ///////////////////////////////////////////////////////////
 // 腰椎诊断
 private:
-	double m_grad[2];									// 左右两条直线斜率 [0]--左，[1]--右
-	double m_bias[2];									// 左右两条直线偏置 [0]--左，[1]--右
-	std::vector<std::vector<cv::Point>> m_vecCpPoint;	// 直线与边界直线的交点
-	std::vector<std::vector<double>> m_vecMeasure;		// 截距
-	std::vector<std::vector<cv::Point>> m_vecCpPointDel;	// 直线与边界直线的交点
-	std::vector<std::vector<double>> m_vecMeasureDel;		// 截距
-
-	std::vector<CString> m_yaozhui_diagnose;			// 腰椎诊断结果
+	double m_grad_yaozhui[2];											// 左右两条直线斜率 [0]--左，[1]--右
+	double m_bias_yaozhui[2];											// 左右两条直线偏置 [0]--左，[1]--右
+	std::vector<std::vector<cv::Point>> m_vecCpPoint_yaozhui;			// 直线与边界直线的交点
+	std::vector<std::vector<double>> m_vecMeasure_yaozhui;				// 截距
+	std::vector<std::vector<cv::Point>> m_vecCpPointDel_yaozhui;		// 直线与边界直线的交点
+	std::vector<std::vector<double>> m_vecMeasureDel_yaozhui;			// 截距
+	std::vector<CString> m_yaozhui_diagnose;							// 腰椎诊断结果
 // 辅助变量
 private:
-	CString m_csaoZhui_remind[20];		// 腰椎操作提示
 	CString m_csYaoZhui_remind[20];		// 腰椎操作提示
-
+////////////////////////////////////////////////////////////
 // 腰骶角诊断
 private:
 	double m_grad_yaozhuijiao_x;
 	CString m_YaoDiJiao_diagnose;			// 诊断结果
-	CString m_csYaoDiJiao_remind[20];		// 腰椎操作提示
+	CString m_csYaoDiJiao_remind[20];		// 腰骶角操作提示
 ////////////////////////////////////////////////////////////
+// 胸椎诊断
+private:
+	double m_grad_xiongzhui[2];												// 左右两条直线斜率 [0]--左，[1]--右
+	double m_bias_xiongzhui[2];												// 左右两条直线偏置 [0]--左，[1]--右
+	std::vector<std::vector<cv::Point>> m_vecCpPoint_xiongzhui;				// 直线与边界直线的交点
+	std::vector<std::vector<double>> m_vecMeasure_xiongzhui;				// 截距
+	std::vector<std::vector<cv::Point>> m_vecCpPointDel_xiongzhui;			// 直线与边界直线的交点
+	std::vector<std::vector<double>> m_vecMeasureDel_xiongzhui;				// 截距
+	std::vector<CString> m_xiongzhui_diagnose;								// 胸椎诊断结果
+
+private:
+	CString m_csXiongZhui_remind[20];										// 腰椎操作提示
+///////////////////////////////////////////////////////////////////
+// 颈椎正面诊断
+private:
+	std::vector<CString> m_JingZhuiZhengMian_diagnose;						// 颈椎正面诊断结果
+	CString m_csJingZhuiZhengMian_remind[20];								//颈椎正面操作提示
+////////////////////////////////////////////////////////////////////
+// 颈椎开口诊断
+private:
+	std::vector<std::vector<cv::Point>> m_vecCpPoint_JingZhuiZhangKou;			// 直线与边界直线的交点
+	std::vector<std::vector<double>> m_vecMeasure_JingZhuiZhangKou;				// 截距
+	std::vector<std::vector<cv::Point>> m_vecCpPointDel_JingZhuiZhangKou;		// 直线与边界直线的交点
+	std::vector<std::vector<double>> m_vecMeasureDel_JingZhuiZhangKou;			// 截距
+private:
+	std::vector<CString> m_JingZhuiZhangKou_diagnose;							// 颈椎开口诊断结果
+	CString m_csJingZhuiZhangKou_remind[20];									//颈椎开口操作提示
+
+// 
+
+
 // 辅助函数
 private:
 	// 计算两条直线的交点
@@ -193,11 +222,40 @@ private:
 	void initParam();
 	// 针对提示语句，对当前步骤的语句进行高亮
 	void remindColor();
+	// 按钮控件初始化
+	void initCtrlBtn(BOOL selBtn0, BOOL selBtn1);
+	// 按钮控件外观改变
+	void changeCtrlBtn(INT selBtn = NULL, INT selBtn1 = NULL);
+	
+	
 
+
+// 界面美化，调试等参数
 public:
 		double m_edit;
 		CComboBox m_Combo;
 		CMyEdit m_remind1;
+		CMyEdit m_logo;
+
+		CMFCButtonEx m_button2;
+		CMFCButtonEx m_button3;
+		CMFCButtonEx m_button6;
+		CMFCButtonEx m_button8;
+		CMFCButtonEx m_button9;
+		CMFCButtonEx m_button15;
+		CMFCButtonEx m_button14;
+		CMFCButtonEx m_button10;
+		CMFCButtonEx m_button11;
+
+		CMFCButtonEx m_button_op1;
+		CMFCButtonEx m_button_op2;
+		CMFCButtonEx m_button_op3;
+		CMFCButtonEx m_button_op4;
+		CMFCButtonEx m_button_op5;
+		CMFCButtonEx m_button_op6;
+		CMFCButtonEx m_button_op7;
+		CMFCButtonEx m_button_op8;
+		CMFCButtonEx m_button_op9;
 public:
 	void Invalidate(BOOL bErase = 1);
 	void Draw(CDC *pDC);
@@ -226,4 +284,7 @@ public:
 	afx_msg void OnBnClickedButton15();
 	afx_msg void OnBnClickedButtonOp4();
 	afx_msg void OnBnClickedButton14();
+	afx_msg void OnBnClickedButtonOp5();
+	afx_msg void OnBnClickedButtonOp6();
+	afx_msg void OnBnClickedButtonOp7();
 };
