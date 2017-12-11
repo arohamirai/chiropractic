@@ -182,10 +182,16 @@ private:
 private:
 	CString m_csXiongZhui_remind[20];										// 腰椎操作提示
 ///////////////////////////////////////////////////////////////////
-// 颈椎正面诊断
+// 六、 颈椎正面诊断
 private:
-	std::vector<CString> m_JingZhuiZhengMian_diagnose;						// 颈椎正面诊断结果
-	CString m_csJingZhuiZhengMian_remind[20];								//颈椎正面操作提示
+	double m_grad_jingzhuizhengmian_y;
+	std::vector<std::vector<cv::Point>> m_vecCpPoint_JingZhuiZhengMian;			// 直线与边界直线的交点
+	std::vector<std::vector<double>> m_vecMeasure_JingZhuiZhengMian;			// 截距
+	std::vector<std::vector<cv::Point>> m_vecCpPointDel_JingZhuiZhengMian;		// 直线与边界直线的交点
+	std::vector<std::vector<double>> m_vecMeasureDel_JingZhuiZhengMian;			// 截距
+	
+	std::vector<CString> m_JingZhuiZhengMian_diagnose;							// 颈椎正面诊断结果
+	CString m_csJingZhuiZhengMian_remind[20];									//颈椎正面操作提示
 ////////////////////////////////////////////////////////////////////
 // 颈椎开口诊断
 private:
@@ -209,7 +215,7 @@ private:
 	 // 用于判断两条直线是否平行（比较斜率是否相等）
 	double determinant(double v1, double v2, double v3, double v4);
 	// 做线的延长线
-	void  lineExt(double grad, cv::Point center, double lenth_lt, double lenth_rb, cv::Point &p_l, cv::Point &p_r);
+	void  lineExt(double grad, cv::Point center, double lenth_lt, double lenth_rb, cv::Point &p_lt, cv::Point &p_rb);
 	// 求点与直线的垂直点
 	cv::Point lineCrossDot(double grad, cv::Point p1, cv::Point p2);
 	// 读取*.dcm的CT片到OpenCV支持格式
@@ -236,6 +242,7 @@ public:
 		CComboBox m_Combo;
 		CMyEdit m_remind1;
 		CMyEdit m_logo;
+		CMyEdit m_gallery;
 
 		CMFCButtonEx m_button2;
 		CMFCButtonEx m_button3;
