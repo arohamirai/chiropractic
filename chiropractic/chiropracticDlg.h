@@ -12,20 +12,14 @@
 enum drawTpye{ DRAW_LINE = 1, DRAW_DIAGNOSE, DRAW_LINE_MEASURE, DRAW_LINE_VERTICALLINE,DRAW_DIGU_LINE,DRAW_CIRCLE,DRAW_YAOZHUI_MEASURE,
 	DRAW_BASE_LINE, DRAW_XIONGZHUI_MEASURE, DRAW_JINGZHUIZHENGMIAN_MEASURE, DRAW_JINGZHUIZHANGKOU_MEASURE
 };
-enum opType {DRAW_RECT = 1, DRAW_MEASURE,DIAG_QIAGU ,DIAG_DIGU, DIAG_YAOZHUI, DIAG_YAODIJIAO,DIAG_XIONGZHUI,DIAG_JINGZHUIZHENGMIAN,DIAG_JINGZHUIZHANGKOU
+enum opType {DRAW_RECT = 1, DRAW_MEASURE,DIAG_QG ,DIAG_DG, DIAG_YZ, DIAG_YZJ,DIAG_XZ,DIAG_JZ,DIAG_HZ
 };
 typedef struct _logLnfo {
-	//cv::Point p1;
-	//cv::Point p2;
-	//cv::Point p3;
-	//cv::Point p4;
-	cv::Point p[10];		// p[0~1] 正常直线，p[2~3]测量线
+	cv::Point p[10];
 	cv::Point center[5];
-	//cv::Point center1;		 // 画直线时所取关键点
-	//cv::Point center2;		// 保存圆、标注线文字、诊断结果文字所在位置。
-	double length[2];				//测量长度
+	double length[2];			//测量长度
 	char text[3][20];			//文字标注（测量长度、诊断结果等）
-	int op;					//操作类型
+	int op;						//操作类型
 	int step;
 }logInfo;
 
@@ -60,13 +54,25 @@ public:
 	afx_msg void OnBnClickedButton2();
 
 
+// 旋转侧判定参数
+private:
+	int m_rotateMethod;
+	int m_curRotateStep;
+	double m_dGrad_line_rotate;
+	CString m_strRotate;		// R/L/-
+	bool m_bHas_draw_rotate;
+	cv::Point m_point_rotate[4];
+
 // 通用参数
 private:
 	bool m_bNeedSave;
+	bool m_bCanCutPic;
+	bool m_bDraw_rotate;
 	int m_opType;
-	bool m_bLButtonDown; //记录是否按下了鼠标左键
 	int m_curStep;				// 当前操作步骤
+	
 
+	bool m_bLButtonDown; //记录是否按下了鼠标左键
 	int m_ctrlWidth;	// 图像实际长宽(mm)
 	int m_ctrlHeight;
 	double m_dWidthScale;	// 比例因子(mm/像素)
@@ -101,7 +107,7 @@ private:
 	int m_fontTypeOfDiagnose;				// 诊断结果的字体类型
 	double m_dFontSizeOfDiagnose;			// 诊断结果的字体大小
 	int m_fontThicknessOfDiagnose;			// 诊断结果字体宽度
-	CString *m_csRemind;					// 操作提示
+	CString *m_strHint;					// 操作提示
 // 辅助变量
 	REAL m_zoom;  //缩放系数
 	//CRect m_Rect; //对话框的矩形区域
@@ -120,48 +126,60 @@ private:
 // 一、髂骨半脱位
 //正经变量
 private:
-	double m_grad_gugu_x;				// 股骨头线斜率
-	double m_grad_gugu_y;				// 股骨头线垂直线的斜率
-	double m_dLlength_wuminggu;			// 无名骨长度
-	double m_dRlength_wuminggu;
+	double m_dGrad_gg_x_qg;				// 股骨头线斜率
+	double m_dGrad_gg_y_qg;				// 股骨头线垂直线的斜率
+	double m_dLength_wmg_l_qg;			// 无名骨长度
+	double m_dLength_wmg_r_qg;
 	double m_dLength;					// 耻骨联合中线与中心线的距离, 偏中心线左侧为负，偏中心线右侧为正
 	double m_dLlength_xiaguanjie;			// 下关节突影长度
 	double m_dRlength_xiaguanjie;
 
-	CString m_qiagu_diagnose;			// 髂骨诊断结果
+	CString m_strDiag_qg;			// 髂骨诊断结果
 // 辅助变量
 private:
-	CString m_csQiagu_remind[20];		// 髂骨操作提示
+	CString m_strHint_qg[20];		// 髂骨操作提示
 
 ///////////////////////////////////////////////////////////////////////////////////////
 //二、骶骨半脱位
 private:
-	double m_grad_digu_x;				// 骶骨水平线斜率
-	double m_grad_digu_y;				// 骶骨水平线垂直线的斜率
+	double m_dGrad_dg_x_dg;				// 骶骨水平线斜率
+	double m_dGrad_dg_y_dg;				// 骶骨水平线垂直线的斜率
 	//double m_grad_gugu_x;				// 利用前面定义好的
 
-	double m_dLlength_digu;				// 两根垂线长度
-	double m_dRlength_digu;
-	double m_dDigu_down;				// 骶骨向下偏位
+	double m_dLength_l_dg;				// 两根垂线长度
+	double m_dLength_r_dg;
+	double m_dLength_down_dg;				// 骶骨向下偏位
 
-	CString m_digu_diagnose;			// 骶骨诊断结果
+	CString m_strDiag_dg;			// 骶骨诊断结果
 // 辅助变量
 private:
-	CString m_csDigu_remind[20];		// 骶骨操作提示
+	CString m_strHint_dg[20];		// 骶骨操作提示
 
 ///////////////////////////////////////////////////////////
 // 腰椎诊断
 private:
-	double m_grad_yaozhui[2];											// 左右两条直线斜率 [0]--左，[1]--右
-	double m_bias_yaozhui[2];											// 左右两条直线偏置 [0]--左，[1]--右
-	std::vector<std::vector<cv::Point>> m_vecCpPoint_yaozhui;			// 直线与边界直线的交点
-	std::vector<std::vector<double>> m_vecMeasure_yaozhui;				// 截距
-	std::vector<std::vector<cv::Point>> m_vecCpPointDel_yaozhui;		// 直线与边界直线的交点
-	std::vector<std::vector<double>> m_vecMeasureDel_yaozhui;			// 截距
-	std::vector<CString> m_yaozhui_diagnose;							// 腰椎诊断结果
+	CString m_strHint_yz[20];											// 腰椎操作提示
+	CString m_strDiag_yz[6];											// 腰椎诊断结果
+	int m_curDiag_yz;													// 当前正在诊断的腰椎
+	int m_curDiag_xie_yz;												// 当前楔形诊断的操作步骤
+	double m_dThres_xie_yz;												// 楔形切口判断阈值
+	CString m_strBend_yz;												// 腰椎侧弯凸侧
+	bool m_bLuxs_yz[6];													// 腰椎是否脱位
+	int m_total_lux_yz;													// 半脱位腰椎总数
+	double m_dGrad_bj_yz[2];											// 左右两条直线斜率 [0]--左，[1]--右
+	double m_dBias_bj_yz[2];											// 左右两条直线偏置 [0]--左，[1]--右
+	cv::Point m_point_cp_l_yz[6];										// 直线与左边界直线的交点
+	cv::Point m_point_cp_r_yz[6];										// 直线与右边界直线的交点，5条腰椎，一条基准线
+	//double m_intercept_l_yz[5];											// 左截距
+	//double m_intercept_r_yz[5];											// 右截距
+
+	//std::vector<std::vector<double>> m_vecMeasure_yaozhui;				// 截距
+	//std::vector<std::vector<cv::Point>> m_vecCpPointDel_yaozhui;		// 直线与边界直线的交点
+	//std::vector<std::vector<double>> m_vecMeasureDel_yaozhui;			// 截距
+	//
 // 辅助变量
 private:
-	CString m_csYaoZhui_remind[20];		// 腰椎操作提示
+	
 ////////////////////////////////////////////////////////////
 // 腰骶角诊断
 private:
@@ -171,40 +189,54 @@ private:
 ////////////////////////////////////////////////////////////
 // 胸椎诊断
 private:
-	double m_grad_xiongzhui[2];												// 左右两条直线斜率 [0]--左，[1]--右
-	double m_bias_xiongzhui[2];												// 左右两条直线偏置 [0]--左，[1]--右
-	std::vector<std::vector<cv::Point>> m_vecCpPoint_xiongzhui;				// 直线与边界直线的交点
-	std::vector<std::vector<double>> m_vecMeasure_xiongzhui;				// 截距
-	std::vector<std::vector<cv::Point>> m_vecCpPointDel_xiongzhui;			// 直线与边界直线的交点
-	std::vector<std::vector<double>> m_vecMeasureDel_xiongzhui;				// 截距
-	std::vector<CString> m_xiongzhui_diagnose;								// 胸椎诊断结果
+	CString m_strHint_xz[20];											// 胸椎操作提示
+	CString m_strDiag_xz[13];											// 胸椎诊断结果
+	int m_curDiag_xz;													// 当前正在诊断的胸椎
+	int m_curDiag_xie_xz;												// 当前楔形诊断的操作步骤
+	double m_dThres_xie_xz;												// 楔形切口判断阈值
+	CString m_strBend_xz;												// 胸椎侧弯凸侧
+	//bool m_bLuxs_xz[13];												// 胸椎是否脱位
+	int m_total_lux_xz;													// 半脱位胸椎总数
+	double m_dGrad_bj_xz[2];											// 左右两条直线斜率 [0]--左，[1]--右
+	double m_dBias_bj_xz[2];											// 左右两条直线偏置 [0]--左，[1]--右
+	cv::Point m_point_cp_l_xz[13];										// 直线与左边界直线的交点
+	cv::Point m_point_cp_r_xz[13];										// 直线与右边界直线的交点，12条胸椎，一条基准线
 
-private:
-	CString m_csXiongZhui_remind[20];										// 腰椎操作提示
 ///////////////////////////////////////////////////////////////////
-// 六、 颈椎正面诊断
+// 六、 颈椎
 private:
-	double m_grad_jingzhuizhengmian_y;
-	std::vector<std::vector<cv::Point>> m_vecCpPoint_JingZhuiZhengMian;			// 直线与边界直线的交点
-	std::vector<std::vector<double>> m_vecMeasure_JingZhuiZhengMian;			// 截距
-	std::vector<std::vector<cv::Point>> m_vecCpPointDel_JingZhuiZhengMian;		// 直线与边界直线的交点
-	std::vector<std::vector<double>> m_vecMeasureDel_JingZhuiZhengMian;			// 截距
-	
-	std::vector<CString> m_JingZhuiZhengMian_diagnose;							// 颈椎正面诊断结果
-	CString m_csJingZhuiZhengMian_remind[20];									//颈椎正面操作提示
-////////////////////////////////////////////////////////////////////
-// 颈椎开口诊断
-private:
-	std::vector<std::vector<cv::Point>> m_vecCpPoint_JingZhuiZhangKou;			// 直线与边界直线的交点
-	std::vector<std::vector<double>> m_vecMeasure_JingZhuiZhangKou;				// 截距
-	std::vector<std::vector<cv::Point>> m_vecCpPointDel_JingZhuiZhangKou;		// 直线与边界直线的交点
-	std::vector<std::vector<double>> m_vecMeasureDel_JingZhuiZhangKou;			// 截距
-private:
-	std::vector<CString> m_JingZhuiZhangKou_diagnose;							// 颈椎开口诊断结果
-	CString m_csJingZhuiZhangKou_remind[20];									//颈椎开口操作提示
+	CString m_strHint_jz[20];											// 颈椎操作提示
+	CString m_strDiag_jz[13];											// 颈椎诊断结果
+	int m_curDiag_jz;													// 当前正在诊断的颈椎
+	int m_curDiag_step_jz;												// 当前诊断的操作步骤
+	double m_dThres_xie_jz;												// 楔形切口判断阈值
+	CString m_strBend_jz;												// 颈椎侧弯凸侧
+	//bool m_bLuxs_jz[13];												// 颈椎是否脱位
+	int m_total_lux_jz;													// 半脱位颈椎总数
+	double m_dGrad_bj_jz[2];											// 左右两条直线斜率 [0]--左，[1]--右
+	double m_dBias_bj_jz[2];											// 左右两条直线偏置 [0]--左，[1]--右
+	cv::Point m_point_cp_l_jz[13];										// 直线与左边界直线的交点
+	cv::Point m_point_cp_r_jz[13];										// 直线与右边界直线的交点
 
-// 
-
+// 寰椎
+private:
+	cv::Mat m_jzzcImg;													// 颈椎正侧位片
+	cv::Mat m_jzzkImg;													// 颈椎张口位片
+	bool m_bHas_changed_img;											// 是否载入了新图像
+	bool m_bHas_draw_step8;												// 是否需要做step 8 步，还是说要载入图像
+	double m_dThres_H_hz;												// 
+	CString m_strHint_hz[20];											// 寰椎操作提示
+	CString m_strDiag_hz[13];											// 寰椎诊断结果
+	double m_dGrad_czt_hz;
+	double m_dBias_czt_hz;
+	double m_dGrad_bj_hz[2];											// 左右两条直线斜率 [0]--左，[1]--右
+	double m_dBias_bj_hz[2];											// 左右两条直线偏置 [0]--左，[1]--右
+	cv::Point m_point_cp_l_hz[5];										// 直线与左边界直线的交点
+	cv::Point m_point_cp_r_hz[5];										// 直线与右边界直线的交点，
+	cv::Point m_point_jzzk_bj_lt;												// 颈椎张口位片的边界直线点
+	cv::Point m_point_jzzk_bj_lb;
+	cv::Point m_point_jzzk_bj_rt;
+	cv::Point m_point_jzzk_bj_rb;
 
 // 辅助函数
 private:
@@ -232,15 +264,17 @@ private:
 	void initCtrlBtn(BOOL selBtn0, BOOL selBtn1);
 	// 按钮控件外观改变
 	void changeCtrlBtn(INT selBtn = NULL, INT selBtn1 = NULL);
-	
-	
+	// 旋转判断函数
+	bool drawRotate(cv::Point pt);
+	// 
 
 
 // 界面美化，调试等参数
 public:
 		double m_edit;
 		CComboBox m_Combo;
-		CMyEdit m_remind1;
+		CComboBox m_Combo2;
+		CMyEdit m_ctrlHint;
 		CMyEdit m_logo;
 		CMyEdit m_gallery;
 
@@ -274,14 +308,11 @@ public:
 	afx_msg void OnBnClickedButton9();
 	afx_msg void OnBnClickedButton8();
 	afx_msg void OnBnClickedButton10();
-	//afx_msg void OnBnClickedButton5();
 	afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
-	//afx_msg void OnBnClickedButton7();
 	afx_msg void OnBnClickedButton1();
 	afx_msg void OnBnClickedButton6();
 	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
 	afx_msg void OnCbnSelchangeCombo1();
-	//afx_msg void OnBnClickedButton12();
 	afx_msg void OnBnClickedButton11();
 	afx_msg void OnBnClickedButton13();
 	afx_msg void OnBnClickedButtonOp1();
@@ -294,4 +325,5 @@ public:
 	afx_msg void OnBnClickedButtonOp5();
 	afx_msg void OnBnClickedButtonOp6();
 	afx_msg void OnBnClickedButtonOp7();
+	afx_msg void OnCbnSelchangeCombo2();
 };

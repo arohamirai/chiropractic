@@ -62,21 +62,17 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\VS15_OPENCV2413_D_x86.props" />
-    <Import Project="..\..\..\DCMTK_VS2015_X86_d.props" />
+    <Import Project="..\..\props\DCMTK_VS2015_X86_d.props" />
+    <Import Project="..\..\props\vs2015_opencv2413_debug_x86.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\VS15_OPENCV2413_R_x86.props" />
-    <Import Project="..\..\..\DCMTK_VS2015_X86_R.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\VS15_OPENCV2413_D.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\VS15_OPENCV2413_R.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -195,29 +191,35 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Bend.h" />
     <ClInclude Include="chiropractic.h" />
     <ClInclude Include="chiropracticDlg.h" />
     <ClInclude Include="CvvImage.h" />
     <ClInclude Include="InitGdiplus.h" />
     <ClInclude Include="InputName.h" />
     <ClInclude Include="InputText.h" />
+    <ClInclude Include="InputYZ.h" />
     <ClInclude Include="MyEdit.h" />
     <ClInclude Include="Parameter.h" />
     <ClInclude Include="Register.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="RotateSee.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Bend.cpp" />
     <ClCompile Include="chiropractic.cpp" />
     <ClCompile Include="chiropracticDlg.cpp" />
     <ClCompile Include="CvvImage.cpp" />
     <ClCompile Include="InitGdiplus.cpp" />
     <ClCompile Include="InputName.cpp" />
     <ClCompile Include="InputText.cpp" />
+    <ClCompile Include="InputYZ.cpp" />
     <ClCompile Include="MyEdit.cpp" />
     <ClCompile Include="Parameter.cpp" />
     <ClCompile Include="Register.cpp" />
+    <ClCompile Include="RotateSee.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
