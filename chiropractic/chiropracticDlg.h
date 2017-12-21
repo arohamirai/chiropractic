@@ -59,7 +59,7 @@ private:
 	int m_rotateMethod;
 	int m_curRotateStep;
 	double m_dGrad_line_rotate;
-	CString m_strRotate;		// R/L/-
+	CString m_strYfc;		// R/L/-
 	bool m_bHas_draw_rotate;
 	cv::Point m_point_rotate[4];
 
@@ -126,34 +126,31 @@ private:
 // 一、髂骨半脱位
 //正经变量
 private:
+	CString m_strDiag_qg;			// 髂骨诊断结果
+	CString m_strHint_qg[20];		// 髂骨操作提示
 	double m_dGrad_gg_x_qg;				// 股骨头线斜率
 	double m_dGrad_gg_y_qg;				// 股骨头线垂直线的斜率
 	double m_dLength_wmg_l_qg;			// 无名骨长度
 	double m_dLength_wmg_r_qg;
 	double m_dLength;					// 耻骨联合中线与中心线的距离, 偏中心线左侧为负，偏中心线右侧为正
-	double m_dLlength_xiaguanjie;			// 下关节突影长度
-	double m_dRlength_xiaguanjie;
-
-	CString m_strDiag_qg;			// 髂骨诊断结果
-// 辅助变量
-private:
-	CString m_strHint_qg[20];		// 髂骨操作提示
+	//double m_dLlength_xiaguanjie;			// 下关节突影长度
+	//double m_dRlength_xiaguanjie;
+	bool m_bDiag_dg_qg;					// 是否继续诊断骶骨
 
 ///////////////////////////////////////////////////////////////////////////////////////
 //二、骶骨半脱位
 private:
+	CString m_strDiag_dg;				// 骶骨诊断结果
+	CString m_strHint_dg[20];			// 骶骨操作提示
 	double m_dGrad_dg_x_dg;				// 骶骨水平线斜率
 	double m_dGrad_dg_y_dg;				// 骶骨水平线垂直线的斜率
 	//double m_grad_gugu_x;				// 利用前面定义好的
-
 	double m_dLength_l_dg;				// 两根垂线长度
 	double m_dLength_r_dg;
-	double m_dLength_down_dg;				// 骶骨向下偏位
+	double m_dLength_xx_dg;			// 骶骨向下偏位
+	double m_dThres_dg;				// 骶骨向下偏位阈值
 
-	CString m_strDiag_dg;			// 骶骨诊断结果
-// 辅助变量
-private:
-	CString m_strHint_dg[20];		// 骶骨操作提示
+	
 
 ///////////////////////////////////////////////////////////
 // 腰椎诊断
