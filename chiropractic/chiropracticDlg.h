@@ -60,7 +60,7 @@ private:
 	int m_curRotateStep;
 	double m_dGrad_line_rotate;
 	CString m_strYfc;		// R/L/-
-	bool m_bHas_draw_rotate;
+	bool m_bHas_draw_yfc;
 	cv::Point m_point_rotate[4];
 
 // 通用参数
@@ -104,9 +104,9 @@ private:
 	int m_fontTypeOfMeasure;				// 划片时测量的值得字体类型
 	double m_dFontSizeOfMeasure;			// 划片时测量的值得字体大小
 	int m_fontThicknessOfMeasure;			// 划片时测量的值得字体宽度
-	int m_fontTypeOfDiagnose;				// 诊断结果的字体类型
-	double m_dFontSizeOfDiagnose;			// 诊断结果的字体大小
-	int m_fontThicknessOfDiagnose;			// 诊断结果字体宽度
+	int m_font_type_diag;				// 诊断结果的字体类型
+	double m_font_scale_diag;			// 诊断结果的字体大小
+	int m_font_thick_diag;			// 诊断结果字体宽度
 	CString *m_strHint;					// 操作提示
 // 辅助变量
 	REAL m_zoom;  //缩放系数
@@ -162,17 +162,12 @@ private:
 	double m_dThres_xie_yz;												// 楔形切口判断阈值
 	CString m_strBend_yz;												// 腰椎侧弯凸侧
 	bool m_bLuxs_yz[6];													// 腰椎是否脱位
+	bool m_bDraw_yfc_step;												// 是否到了判断原发测的步骤
 	int m_total_lux_yz;													// 半脱位腰椎总数
 	double m_dGrad_bj_yz[2];											// 左右两条直线斜率 [0]--左，[1]--右
 	double m_dBias_bj_yz[2];											// 左右两条直线偏置 [0]--左，[1]--右
 	cv::Point m_point_cp_l_yz[6];										// 直线与左边界直线的交点
 	cv::Point m_point_cp_r_yz[6];										// 直线与右边界直线的交点，5条腰椎，一条基准线
-	//double m_intercept_l_yz[5];											// 左截距
-	//double m_intercept_r_yz[5];											// 右截距
-
-	//std::vector<std::vector<double>> m_vecMeasure_yaozhui;				// 截距
-	//std::vector<std::vector<cv::Point>> m_vecCpPointDel_yaozhui;		// 直线与边界直线的交点
-	//std::vector<std::vector<double>> m_vecMeasureDel_yaozhui;			// 截距
 	//
 // 辅助变量
 private:
@@ -262,7 +257,7 @@ private:
 	// 按钮控件外观改变
 	void changeCtrlBtn(INT selBtn = NULL, INT selBtn1 = NULL);
 	// 旋转判断函数
-	bool drawRotate(cv::Point pt);
+	bool drawYfc(cv::Point pt);
 	// 
 
 
