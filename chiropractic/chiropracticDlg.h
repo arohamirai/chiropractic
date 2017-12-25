@@ -101,9 +101,9 @@ private:
 	int m_fontTypeOfInfo;					// CT片信息字体类型
 	double m_dFontSizeOfInfo;				// CT片信息字体大小
 	int m_fontThicknessOfInfo;				// CT片信息字体宽度
-	int m_fontTypeOfMeasure;				// 划片时测量的值得字体类型
-	double m_dFontSizeOfMeasure;			// 划片时测量的值得字体大小
-	int m_fontThicknessOfMeasure;			// 划片时测量的值得字体宽度
+	int m_font_type_measure;				// 划片时测量的值得字体类型
+	double m_dfont_scale_measure;			// 划片时测量的值得字体大小
+	int m_font_thick_measure;			// 划片时测量的值得字体宽度
 	int m_font_type_diag;				// 诊断结果的字体类型
 	double m_font_scale_diag;			// 诊断结果的字体大小
 	int m_font_thick_diag;			// 诊断结果字体宽度
@@ -162,7 +162,7 @@ private:
 	double m_dThres_xie_yz;												// 楔形切口判断阈值
 	CString m_strBend_yz;												// 腰椎侧弯凸侧
 	bool m_bLuxs_yz[6];													// 腰椎是否脱位
-	bool m_bDraw_yfc_step;												// 是否到了判断原发测的步骤
+	bool m_bDraw_yfc_step_yz;												// 是否到了判断原发测的步骤
 	int m_total_lux_yz;													// 半脱位腰椎总数
 	double m_dGrad_bj_yz[2];											// 左右两条直线斜率 [0]--左，[1]--右
 	double m_dBias_bj_yz[2];											// 左右两条直线偏置 [0]--左，[1]--右
@@ -188,11 +188,19 @@ private:
 	double m_dThres_xie_xz;												// 楔形切口判断阈值
 	CString m_strBend_xz;												// 胸椎侧弯凸侧
 	//bool m_bLuxs_xz[13];												// 胸椎是否脱位
-	int m_total_lux_xz;													// 半脱位胸椎总数
+	int m_total_xz;													// 半脱位胸椎总数
 	double m_dGrad_bj_xz[2];											// 左右两条直线斜率 [0]--左，[1]--右
 	double m_dBias_bj_xz[2];											// 左右两条直线偏置 [0]--左，[1]--右
 	cv::Point m_point_cp_l_xz[13];										// 直线与左边界直线的交点
 	cv::Point m_point_cp_r_xz[13];										// 直线与右边界直线的交点，12条胸椎，一条基准线
+
+	CString m_strYfc_xz[15];											// 原发测判定
+	CString m_strXie_xz[15];											// 楔形开口结果
+	bool m_bHas_more_xz_xz;												// 是否有超过12条的胸椎
+	bool m_bDraw_L1_xz;													// 是否画L1腰椎
+	double m_bHas_draw_dd_line_xz;												// 是否已经做出骶骨水平线
+	double m_dGrad_dg_xz;												// 骶骨水平线的斜率
+	void diagXz();														//胸椎诊断
 
 ///////////////////////////////////////////////////////////////////
 // 六、 颈椎
