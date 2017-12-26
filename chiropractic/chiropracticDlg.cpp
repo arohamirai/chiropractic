@@ -339,8 +339,8 @@ void CchiropracticDlg::OnBnClickedButton2()
 	double w, h; //实际尺寸(mm或英寸)
 	w = 17 * 25.4;
 	h = 14 * 25.4;
-	m_dWidthScale = w / m_srcImg.cols;
-	m_dHeightScale = h / m_srcImg.rows;
+	m_dwidth_scale = w / m_srcImg.cols;
+	m_dheight_scale = h / m_srcImg.rows;
 	// 允许调整尺寸
 	GetDlgItem(IDC_COMBO1)->EnableWindow(TRUE);
 	m_ctrlHint.SetWindowText(_T("请选择操作类型！"));
@@ -454,8 +454,8 @@ void CchiropracticDlg::OnBnClickedButton1()
 	int w = dlg.m_dWidth;
 	int h = dlg.m_dHeight;
 
-	m_dWidthScale = w / m_srcImg.cols;
-	m_dHeightScale = h / m_srcImg.rows;
+	m_dwidth_scale = w / m_srcImg.cols;
+	m_dheight_scale = h / m_srcImg.rows;
 	return;
 }
 void CchiropracticDlg::OnBnClickedButton6()
@@ -565,8 +565,8 @@ void CchiropracticDlg::OnMouseMove(UINT nFlags, CPoint point)
 			cv::circle(m_maskShowImg, m_p1, m_circleRadius, m_maskColor, -1);
 			cv::circle(m_maskShowImg, m_p2, m_circleRadius, m_maskColor, -1);
 			cv::line(m_maskShowImg, m_p1, m_p2, m_lineColor, m_lineWidth);
-			double w = m_dWidthScale * std::sqrt((m_p2.x - m_p1.x)*(m_p2.x - m_p1.x));
-			double h = m_dHeightScale * std::sqrt((m_p2.y - m_p1.y)*(m_p2.y - m_p1.y));
+			double w = m_dwidth_scale * std::sqrt((m_p2.x - m_p1.x)*(m_p2.x - m_p1.x));
+			double h = m_dheight_scale * std::sqrt((m_p2.y - m_p1.y)*(m_p2.y - m_p1.y));
 			double length = std::sqrt(w*w + h*h);
 			char text[20] = { 0 };
 			sprintf_s(text, "%.1fmm", length);
@@ -748,7 +748,7 @@ void CchiropracticDlg::OnLButtonUp(UINT nFlags, CPoint point) //相对于窗口�
 			dot = lineCrossDot(m_dGrad_gg_x_qg, pt, m_gp[2]);   // 直线外点与直线的交点
 			cv::line(m_maskImg, m_gp[2], dot, m_maskColor, m_lineWidth);
 			// 计算测量长度
-			double length = m_dHeightScale * std::sqrt((m_gp[2].x - dot.x)*(m_gp[2].x - dot.x) + (m_gp[2].y - dot.y)*(m_gp[2].y - dot.y));
+			double length = m_dheight_scale * std::sqrt((m_gp[2].x - dot.x)*(m_gp[2].x - dot.x) + (m_gp[2].y - dot.y)*(m_gp[2].y - dot.y));
 			// 保存测量结果
 			sprintf_s(log.text[0], "%.1fmm", length);
 			// 显示测量结果
@@ -807,7 +807,7 @@ void CchiropracticDlg::OnLButtonUp(UINT nFlags, CPoint point) //相对于窗口�
 			dot = lineCrossDot(m_dGrad_gg_x_qg, pt, m_gp[4]);
 			cv::line(m_maskImg, m_gp[4], dot, m_maskColor, m_lineWidth);
 
-			double length = m_dHeightScale * std::sqrt((m_gp[4].x - dot.x)*(m_gp[4].x - dot.x) + (m_gp[4].y - dot.y)*(m_gp[4].y - dot.y));
+			double length = m_dheight_scale * std::sqrt((m_gp[4].x - dot.x)*(m_gp[4].x - dot.x) + (m_gp[4].y - dot.y)*(m_gp[4].y - dot.y));
 			sprintf_s(log.text[0], "%.1fmm", length);
 			cv::Point center = cv::Point(m_gp[4].x, (m_gp[4].y + pt.y) * 2 / 3);
 			cv::putText(m_maskImg, log.text[0], center, m_font_type_measure, m_dfont_scale_measure, m_maskColor, m_font_thick_measure);
@@ -867,7 +867,7 @@ void CchiropracticDlg::OnLButtonUp(UINT nFlags, CPoint point) //相对于窗口�
 			// 标注
 			cv::Point dot;
 			dot = lineCrossDot(m_dGrad_gg_y_qg, m_gp[6], pt);
-			double length = m_dHeightScale * std::sqrt((pt.x - dot.x)*(pt.x - dot.x) + (pt.y - dot.y)*(pt.y - dot.y));
+			double length = m_dheight_scale * std::sqrt((pt.x - dot.x)*(pt.x - dot.x) + (pt.y - dot.y)*(pt.y - dot.y));
 			cv::line(m_maskImg, pt, dot, m_maskColor, m_lineWidth);
 
 			sprintf_s(log.text[0], "%.1fmm", length);
@@ -974,7 +974,7 @@ void CchiropracticDlg::OnLButtonUp(UINT nFlags, CPoint point) //相对于窗口�
 			m_curStep++;
 			m_bNeedSave = true;
 			m_bHas_draw_yfc = false;
-			INT_PTR ret = MessageBox(_T("是否继续诊断骶骨？。"),_T("提示"),MB_YESNO);
+			INT_PTR ret = MessageBox(_T("是否继续诊断骶骨？"),_T("提示"),MB_YESNO);
 			if (ret == IDYES)
 			{
 				m_bDiag_dg_qg = true;
@@ -1037,7 +1037,7 @@ void CchiropracticDlg::OnLButtonUp(UINT nFlags, CPoint point) //相对于窗口�
 			// 计算向下偏位距离
 			int xx_x = std::abs(dot_xx_top.x - dot_xx_bot.x);
 			int xx_y = std::abs(dot_xx_top.y - dot_xx_bot.y);
-			m_dLength_xx_dg = std::sqrt(m_dWidthScale*xx_x *xx_x + m_dHeightScale *xx_y*xx_y);
+			m_dLength_xx_dg = std::sqrt(m_dwidth_scale*xx_x *xx_x + m_dheight_scale *xx_y*xx_y);
 			//计算放置位置
 			char text_xx[20];
 			sprintf_s(text_xx, "%.1fmm", m_dLength_xx_dg);
@@ -1050,6 +1050,10 @@ void CchiropracticDlg::OnLButtonUp(UINT nFlags, CPoint point) //相对于窗口�
 
 			m_curStep++;
 			m_bNeedSave = true;
+
+			// 为胸椎诊断设置标志位
+			m_bHas_draw_dd_line_xz = true;
+			m_dGrad_dg_xz = m_dGrad_dg_x_dg;
 		}
 		// 11 左侧骶翼垂直线
 		else if (m_curStep == 11)
@@ -1108,8 +1112,8 @@ void CchiropracticDlg::OnLButtonUp(UINT nFlags, CPoint point) //相对于窗口�
 			int delta_y_l = std::abs(m_gp[13].y - dot_l.y);
 			int delta_x_r = std::abs(m_gp[13].x - dot_r.x);
 			int delta_y_r = std::abs(m_gp[13].y - dot_r.y);
-			m_dLength_l_dg = std::sqrt(m_dWidthScale * delta_x_l*delta_x_l + m_dHeightScale * delta_y_l * delta_y_l);
-			m_dLength_r_dg = std::sqrt(m_dWidthScale * delta_x_r*delta_x_r + m_dHeightScale * delta_y_r * delta_y_r);
+			m_dLength_l_dg = std::sqrt(m_dwidth_scale * delta_x_l*delta_x_l + m_dheight_scale * delta_y_l * delta_y_l);
+			m_dLength_r_dg = std::sqrt(m_dwidth_scale * delta_x_r*delta_x_r + m_dheight_scale * delta_y_r * delta_y_r);
 			// 放置测量
 			char text_l_dg[20], text_r_dg[20];
 			cv::Point center_l_dg, center_r_dg;
@@ -1323,8 +1327,8 @@ void CchiropracticDlg::OnLButtonUp(UINT nFlags, CPoint point) //相对于窗口�
 					cv::circle(m_maskImg, m_gp[7], m_circleRadius, m_maskColor, -1);
 					cv::line(m_maskImg, cl, cr, m_maskColor, m_lineWidth);
 					//进行测量和标注
-					l_l = m_dHeightScale * std::sqrt(std::pow(m_point_cp_l_yz[5].x - m_point_cp_l_yz[6].x, 2) + std::pow(m_point_cp_l_yz[5].y - m_point_cp_l_yz[6].y, 2));
-					l_r = m_dHeightScale * std::sqrt(std::pow(m_point_cp_r_yz[5].x - m_point_cp_r_yz[6].x, 2) + std::pow(m_point_cp_r_yz[5].y - m_point_cp_r_yz[6].y, 2));
+					l_l = m_dheight_scale * std::sqrt(std::pow(m_point_cp_l_yz[5].x - m_point_cp_l_yz[6].x, 2) + std::pow(m_point_cp_l_yz[5].y - m_point_cp_l_yz[6].y, 2));
+					l_r = m_dheight_scale * std::sqrt(std::pow(m_point_cp_r_yz[5].x - m_point_cp_r_yz[6].x, 2) + std::pow(m_point_cp_r_yz[5].y - m_point_cp_r_yz[6].y, 2));
 					char text_l[20], text_r[20];
 					sprintf_s(text_l, "%.1lfmm", l_l);
 					sprintf_s(text_r, "%.1lfmm", l_r);
@@ -1488,8 +1492,8 @@ void CchiropracticDlg::OnLButtonUp(UINT nFlags, CPoint point) //相对于窗口�
 					cv::line(m_maskImg, cl, cr, m_maskColor, m_lineWidth);
 					//进行测量和标注
 					double l_l = 0, l_r = 0;
-					l_l = m_dHeightScale * std::sqrt(std::pow(m_point_cp_l_yz[4].x - m_point_cp_l_yz[5].x, 2) + std::pow(m_point_cp_l_yz[4].y - m_point_cp_l_yz[5].y, 2));
-					l_r = m_dHeightScale * std::sqrt(std::pow(m_point_cp_r_yz[4].x - m_point_cp_r_yz[5].x, 2) + std::pow(m_point_cp_r_yz[4].y - m_point_cp_r_yz[5].y, 2));
+					l_l = m_dheight_scale * std::sqrt(std::pow(m_point_cp_l_yz[4].x - m_point_cp_l_yz[5].x, 2) + std::pow(m_point_cp_l_yz[4].y - m_point_cp_l_yz[5].y, 2));
+					l_r = m_dheight_scale * std::sqrt(std::pow(m_point_cp_r_yz[4].x - m_point_cp_r_yz[5].x, 2) + std::pow(m_point_cp_r_yz[4].y - m_point_cp_r_yz[5].y, 2));
 					char text_l[20], text_r[20];
 					sprintf_s(text_l, "%.1lfmm", l_l);
 					sprintf_s(text_r, "%.1lfmm", l_r);
@@ -1653,8 +1657,8 @@ void CchiropracticDlg::OnLButtonUp(UINT nFlags, CPoint point) //相对于窗口�
 					cv::line(m_maskImg, cl, cr, m_maskColor, m_lineWidth);
 					//进行测量和标注
 					double l_l = 0, l_r = 0;
-					l_l = m_dHeightScale * std::sqrt(std::pow(m_point_cp_l_yz[3].x - m_point_cp_l_yz[4].x, 2) + std::pow(m_point_cp_l_yz[3].y - m_point_cp_l_yz[4].y, 2));
-					l_r = m_dHeightScale * std::sqrt(std::pow(m_point_cp_r_yz[3].x - m_point_cp_r_yz[4].x, 2) + std::pow(m_point_cp_r_yz[3].y - m_point_cp_r_yz[4].y, 2));
+					l_l = m_dheight_scale * std::sqrt(std::pow(m_point_cp_l_yz[3].x - m_point_cp_l_yz[4].x, 2) + std::pow(m_point_cp_l_yz[3].y - m_point_cp_l_yz[4].y, 2));
+					l_r = m_dheight_scale * std::sqrt(std::pow(m_point_cp_r_yz[3].x - m_point_cp_r_yz[4].x, 2) + std::pow(m_point_cp_r_yz[3].y - m_point_cp_r_yz[4].y, 2));
 					char text_l[20], text_r[20];
 					sprintf_s(text_l, "%.1lfmm", l_l);
 					sprintf_s(text_r, "%.1lfmm", l_r);
@@ -1814,8 +1818,8 @@ void CchiropracticDlg::OnLButtonUp(UINT nFlags, CPoint point) //相对于窗口�
 					cv::line(m_maskImg, cl, cr, m_maskColor, m_lineWidth);
 					//进行测量和标注
 					double l_l = 0, l_r = 0;
-					l_l = m_dHeightScale * std::sqrt(std::pow(m_point_cp_l_yz[2].x - m_point_cp_l_yz[3].x, 2) + std::pow(m_point_cp_l_yz[2].y - m_point_cp_l_yz[3].y, 2));
-					l_r = m_dHeightScale * std::sqrt(std::pow(m_point_cp_r_yz[2].x - m_point_cp_r_yz[3].x, 2) + std::pow(m_point_cp_r_yz[2].y - m_point_cp_r_yz[3].y, 2));
+					l_l = m_dheight_scale * std::sqrt(std::pow(m_point_cp_l_yz[2].x - m_point_cp_l_yz[3].x, 2) + std::pow(m_point_cp_l_yz[2].y - m_point_cp_l_yz[3].y, 2));
+					l_r = m_dheight_scale * std::sqrt(std::pow(m_point_cp_r_yz[2].x - m_point_cp_r_yz[3].x, 2) + std::pow(m_point_cp_r_yz[2].y - m_point_cp_r_yz[3].y, 2));
 					char text_l[20], text_r[20];
 					sprintf_s(text_l, "%.1lfmm", l_l);
 					sprintf_s(text_r, "%.1lfmm", l_r);
@@ -1971,8 +1975,8 @@ void CchiropracticDlg::OnLButtonUp(UINT nFlags, CPoint point) //相对于窗口�
 					cv::line(m_maskImg, cl, cr, m_maskColor, m_lineWidth);
 					//进行测量和标注
 					double l_l = 0, l_r = 0;
-					l_l = m_dHeightScale * std::sqrt(std::pow(m_point_cp_l_yz[1].x - m_point_cp_l_yz[2].x, 2) + std::pow(m_point_cp_l_yz[1].y - m_point_cp_l_yz[2].y, 2));
-					l_r = m_dHeightScale * std::sqrt(std::pow(m_point_cp_r_yz[1].x - m_point_cp_r_yz[2].x, 2) + std::pow(m_point_cp_r_yz[1].y - m_point_cp_r_yz[2].y, 2));
+					l_l = m_dheight_scale * std::sqrt(std::pow(m_point_cp_l_yz[1].x - m_point_cp_l_yz[2].x, 2) + std::pow(m_point_cp_l_yz[1].y - m_point_cp_l_yz[2].y, 2));
+					l_r = m_dheight_scale * std::sqrt(std::pow(m_point_cp_r_yz[1].x - m_point_cp_r_yz[2].x, 2) + std::pow(m_point_cp_r_yz[1].y - m_point_cp_r_yz[2].y, 2));
 					char text_l[20], text_r[20];
 					sprintf_s(text_l, "%.1lfmm", l_l);
 					sprintf_s(text_r, "%.1lfmm", l_r);
@@ -2182,23 +2186,21 @@ else if (m_opType == DIAG_XZ)
 		//计算直线斜率和偏置
 		m_dGrad_bj_xz[1] = (m_gp[3].y - m_gp[2].y) / (m_gp[3].x - m_gp[2].x + 10e-8);
 		m_dBias_bj_xz[1] = ((m_gp[3].y + m_gp[2].y) - m_dGrad_bj_xz[1] * (m_gp[3].x + m_gp[2].x)) / 2;
-		//写入操作
+		//下一步
 		m_curStep++;
-		//m_curDiag_xz = 1;// 当前正在诊断的胸椎
 		m_curDiag_xie_xz = 0;
 	}
 	else if ((m_curStep >= 4 && m_curStep <= 3 + 2 * 12 +1) || (m_curStep >= 3 + 2 * 12 + 1 && m_bHas_more_xz_xz == true) || (m_curStep >= 3 + 2 * 12 + 1 && m_bDraw_L1_xz == true))	//正常12胸椎,多有胸椎，L1腰椎
 	{
 		// T1~T12，提示是否多有腰椎？看情况决定什么时候做做L1。
-		// T1
-		if (m_curDiag_xie_xz == 0)
+		if (m_curDiag_xie_xz == 0)		// 胸椎直线点1
 		{
 			m_gp[m_curStep] = pt;
 			cv::circle(m_maskImg, m_gp[m_curStep], m_circleRadius, m_maskColor, -1);
 			m_curStep++;
 			m_curDiag_xie_xz = 1;
 		}
-		else if(m_curDiag_xie_xz == 1)
+		else if(m_curDiag_xie_xz == 1)  // 胸椎直线点2
 		{
 			m_gp[m_curStep] = pt;
 			// 计算与左右边界直线交点
@@ -2215,8 +2217,8 @@ else if (m_opType == DIAG_XZ)
 			if (m_curStep >= 7)// 大于等于7，证明这条线至少是第二胸椎
 			{
 				double l_l = 0, l_r = 0;
-				l_l = m_dHeightScale * std::sqrt(std::pow(m_point_cp_l_xz[(m_curStep - 5) / 2].x - m_point_cp_l_xz[(m_curStep - 3) / 2].x, 2) + std::pow(m_point_cp_l_xz[(m_curStep - 5) / 2].y - m_point_cp_l_xz[(m_curStep - 3) / 2].y, 2));
-				l_r = m_dHeightScale * std::sqrt(std::pow(m_point_cp_r_xz[(m_curStep - 5) / 2].x - m_point_cp_r_xz[(m_curStep - 3) / 2].x, 2) + std::pow(m_point_cp_r_xz[(m_curStep - 5) / 2].y - m_point_cp_r_xz[(m_curStep - 3) / 2].y, 2));
+				l_l = m_dheight_scale * std::sqrt(std::pow(m_point_cp_l_xz[(m_curStep - 5) / 2].x - m_point_cp_l_xz[(m_curStep - 3) / 2].x, 2) + std::pow(m_point_cp_l_xz[(m_curStep - 5) / 2].y - m_point_cp_l_xz[(m_curStep - 3) / 2].y, 2));
+				l_r = m_dheight_scale * std::sqrt(std::pow(m_point_cp_r_xz[(m_curStep - 5) / 2].x - m_point_cp_r_xz[(m_curStep - 3) / 2].x, 2) + std::pow(m_point_cp_r_xz[(m_curStep - 5) / 2].y - m_point_cp_r_xz[(m_curStep - 3) / 2].y, 2));
 				char text_l[20], text_r[20];
 				sprintf_s(text_l, "%.1lfmm", l_l);
 				sprintf_s(text_r, "%.1lfmm", l_r);
@@ -2228,7 +2230,7 @@ else if (m_opType == DIAG_XZ)
 				center_r = cv::Point(center_r.x - sz_wh.width, center_r.y);
 				cv::putText(m_maskImg, text_l, center_l, m_font_type_measure, m_dfont_scale_measure, m_maskColor, m_font_thick_measure);
 				cv::putText(m_maskImg, text_r, center_r, m_font_type_measure, m_dfont_scale_measure, m_maskColor, m_font_thick_measure);
-				// 楔形诊断
+				// 楔形开口诊断，T1胸椎以T2胸椎为基准，T2以T3为基准，依此类推，直到T12以L1腰椎为基准 
 				double delta_xie = std::abs(l_l - l_r);
 				if (delta_xie > m_dThres_xie_xz)
 				{
@@ -2242,14 +2244,14 @@ else if (m_opType == DIAG_XZ)
 			}
 			// 下一胸椎
 			m_curStep++;
-			if (m_bDraw_L1_xz == true)	// 是画L1腰椎时，则不用进行原发测判断，否则进行原发测判断
+			if (m_bDraw_L1_xz == true)	// 是画L1腰椎时，则不用进行原发测判断，并诊断，否则进行原发测判断
 			{
 				m_curDiag_xie_xz = 0;
 				m_bDraw_L1_xz = false;		// 重置，结束划线
 				// 进行诊断
+				diagXz();
 
 			}
-				
 			else m_curDiag_xie_xz = 2;
 		}
 		// 原发测判断
@@ -2267,12 +2269,11 @@ else if (m_opType == DIAG_XZ)
 				if (m_bHas_draw_yfc == false)
 					return;
 			}
-			m_strYfc_xz[(m_curStep - 3) / 2] = m_strYfc;
-
 			m_bHas_draw_yfc = false;
+			// 当前所画胸椎的原发测
+			m_strYfc_xz[(m_curStep - 3) / 2] = m_strYfc;
 			m_curDiag_xie_xz = 0;
 			m_total_xz++;//总胸椎数
-
 			if (m_curStep >= 3 + 12 * 2 + 1 && m_curStep % 2 == 0 && m_bDraw_L1_xz == false)
 			{
 				Invalidate();
@@ -2409,8 +2410,8 @@ else if (m_opType == DIAG_XZ)
 					// 诊断和标注
 					//进行测量和标注
 					double l_l = 0, l_r = 0;
-					l_l = m_dHeightScale * std::sqrt(std::pow(m_point_cp_l_jz[m_curDiag_jz].x - m_point_cp_l_jz[m_curDiag_jz + 1].x, 2) + std::pow(m_point_cp_l_jz[m_curDiag_jz].y - m_point_cp_l_jz[m_curDiag_jz + 1].y, 2));
-					l_r = m_dHeightScale * std::sqrt(std::pow(m_point_cp_r_jz[m_curDiag_jz].x - m_point_cp_r_jz[m_curDiag_jz + 1].x, 2) + std::pow(m_point_cp_r_jz[m_curDiag_jz].y - m_point_cp_r_jz[m_curDiag_jz + 1].y, 2));
+					l_l = m_dheight_scale * std::sqrt(std::pow(m_point_cp_l_jz[m_curDiag_jz].x - m_point_cp_l_jz[m_curDiag_jz + 1].x, 2) + std::pow(m_point_cp_l_jz[m_curDiag_jz].y - m_point_cp_l_jz[m_curDiag_jz + 1].y, 2));
+					l_r = m_dheight_scale * std::sqrt(std::pow(m_point_cp_r_jz[m_curDiag_jz].x - m_point_cp_r_jz[m_curDiag_jz + 1].x, 2) + std::pow(m_point_cp_r_jz[m_curDiag_jz].y - m_point_cp_r_jz[m_curDiag_jz + 1].y, 2));
 					char text_l[20], text_r[20];
 					sprintf_s(text_l, "%.1lfmm", l_l);
 					sprintf_s(text_r, "%.1lfmm", l_r);
@@ -2588,8 +2589,8 @@ else if (m_opType == DIAG_XZ)
 			double w, h; //实际尺寸(mm或英寸)
 			w = 17 * 25.4;
 			h = 14 * 25.4;
-			m_dWidthScale = w / m_srcImg.cols;
-			m_dHeightScale = h / m_srcImg.rows;
+			m_dwidth_scale = w / m_srcImg.cols;
+			m_dheight_scale = h / m_srcImg.rows;
 			// 允许调整尺寸
 			GetDlgItem(IDC_COMBO1)->EnableWindow(TRUE);
 			m_ctrlHint.SetWindowText(_T("请选择操作类型！"));
@@ -3271,16 +3272,16 @@ void CchiropracticDlg::OnCbnSelchangeCombo1()
 		double w, h; //实际尺寸(mm或英寸)
 		w = 17*25.4;
 		h = 14*25.4;
-		m_dWidthScale = w / m_srcImg.cols;
-		m_dHeightScale = h / m_srcImg.rows;
+		m_dwidth_scale = w / m_srcImg.cols;
+		m_dheight_scale = h / m_srcImg.rows;
 	}
 	else if (strText == _T("7x8.5"))
 	{
 		double w, h; //实际尺寸(mm或英寸)
 		w = 8.5*25.4;
 		h = 7*25.4;
-		m_dWidthScale = w / m_srcImg.cols;
-		m_dHeightScale = h / m_srcImg.rows;
+		m_dwidth_scale = w / m_srcImg.cols;
+		m_dheight_scale = h / m_srcImg.rows;
 	}
 	else if (strText == _T("....."))
 	{
@@ -3620,8 +3621,8 @@ void CchiropracticDlg::initParam()
 	m_PtStart.X = 0.0f;
 	m_PtStart.Y = 0.0f;
 
-	m_dWidthScale = 1.0;
-	m_dHeightScale = 1.0;
+	m_dwidth_scale = 1.0;
+	m_dheight_scale = 1.0;
 								// 画图相关参数
 	m_circleRadius = 3;
 	m_lineWidth = 3;													// 线的宽度
@@ -4271,8 +4272,8 @@ bool CchiropracticDlg::drawYfc(cv::Point pt)
 			cv::circle(m_maskImg, m_point_rotate[2], m_circleRadius, m_maskColor, -1);
 			// 测量
 			double l, r;
-			l = m_dWidthScale * std::sqrt(std::pow(m_point_rotate[1].x - m_point_rotate[0].x, 2) + std::pow(m_point_rotate[1].y - m_point_rotate[0].y, 2));
-			r = m_dWidthScale * std::sqrt(std::pow(m_point_rotate[2].x - m_point_rotate[0].x, 2) + std::pow(m_point_rotate[2].y - m_point_rotate[0].y, 2));
+			l = m_dwidth_scale * std::sqrt(std::pow(m_point_rotate[1].x - m_point_rotate[0].x, 2) + std::pow(m_point_rotate[1].y - m_point_rotate[0].y, 2));
+			r = m_dwidth_scale * std::sqrt(std::pow(m_point_rotate[2].x - m_point_rotate[0].x, 2) + std::pow(m_point_rotate[2].y - m_point_rotate[0].y, 2));
 			if (l < r)	// 原发侧为右侧
 				m_strYfc = _T("R");
 			else if (l == r)	//没有脱位
@@ -4313,8 +4314,8 @@ bool CchiropracticDlg::drawYfc(cv::Point pt)
 			cv::circle(m_maskImg, pt, m_circleRadius, m_maskColor, -1);
 			// 测量
 			double l, r;
-			l = m_dWidthScale * std::sqrt(std::pow(m_point_rotate[1].x - m_point_rotate[0].x, 2) + std::pow(m_point_rotate[1].y - m_point_rotate[0].y, 2));
-			r = m_dWidthScale * std::sqrt(std::pow(m_point_rotate[3].x - m_point_rotate[2].x, 2) + std::pow(m_point_rotate[3].y - m_point_rotate[2].y, 2));
+			l = m_dwidth_scale * std::sqrt(std::pow(m_point_rotate[1].x - m_point_rotate[0].x, 2) + std::pow(m_point_rotate[1].y - m_point_rotate[0].y, 2));
+			r = m_dwidth_scale * std::sqrt(std::pow(m_point_rotate[3].x - m_point_rotate[2].x, 2) + std::pow(m_point_rotate[3].y - m_point_rotate[2].y, 2));
 			if (l < r)	// 原发侧为右侧
 				m_strYfc = _T("R");
 			else if (l = r)	//没有脱位
@@ -4359,8 +4360,8 @@ bool CchiropracticDlg::drawYfc(cv::Point pt)
 			cv::circle(m_maskImg, m_point_rotate[3], m_circleRadius, m_maskColor, -1);
 			// 测量
 			double l, r;
-			l = m_dWidthScale * std::sqrt(std::pow(m_point_rotate[1].x - m_point_rotate[0].x, 2) + std::pow(m_point_rotate[1].y - m_point_rotate[0].y, 2));
-			r = m_dWidthScale * std::sqrt(std::pow(m_point_rotate[3].x - m_point_rotate[2].x, 2) + std::pow(m_point_rotate[3].y - m_point_rotate[2].y, 2));
+			l = m_dwidth_scale * std::sqrt(std::pow(m_point_rotate[1].x - m_point_rotate[0].x, 2) + std::pow(m_point_rotate[1].y - m_point_rotate[0].y, 2));
+			r = m_dwidth_scale * std::sqrt(std::pow(m_point_rotate[3].x - m_point_rotate[2].x, 2) + std::pow(m_point_rotate[3].y - m_point_rotate[2].y, 2));
 			if (l < r)	// 原发侧为右侧
 				m_strYfc = _T("R");
 			else if (l = r)	//没有脱位
@@ -4424,6 +4425,142 @@ void CchiropracticDlg::diagXz()
 		MessageBox(_T("请返回骨盆诊断步骤，做出骶骨水平线"), _T("提示"), MB_OK);
 		return;
 	}
-	// 计算各胸椎的斜率，并取其中与骶骨水平线斜率最接近的胸椎作为胸椎的判断基准
+	// ********** 计算各胸椎的斜率，并取其中与骶骨水平线斜率最接近的胸椎作为胸椎的判断基准 ************ //
+	// 骶骨水平线的方向向量
+	//double eps = 10e-3;
+	//if(std::abs(m_dGrad_dg_xz) > eps)		// 认为不
+	cv::Point2d e_dg = cv::Point(1.0 / std::sqrt(1 + m_dGrad_dg_xz*m_dGrad_dg_xz), m_dGrad_dg_xz);
+	cv::Point2d *e_xz = new cv::Point2d[m_total_xz + 1]; // 索引0废弃
+	double *angle_xz = new double[m_total_xz + 1]; // 索引0废弃
+	// 求胸椎和腰椎的单位向量
+	for (int i = 1; i <= m_total_xz; ++i)
+	{
+		double delta, delta_x, delta_y;
+		delta_x = m_point_cp_r_xz[i].x - m_point_cp_l_xz[i].x;
+		delta_y = m_point_cp_r_xz[i].y - m_point_cp_l_xz[i].y;
+		delta = std::sqrt(delta_x*delta_x + delta_y*delta_y);
 
+		e_xz[i] = cv::Point2d(delta_x / delta, delta_y / delta);
+	}
+	// 求胸椎和腰椎与骶骨水平线的夹角 （cos(theta) = (a*b)/(||a||*||b||) = a*b） 因为 a，b已经是单位向量了
+	for (int i = 1; i <= m_total_xz; ++i)
+	{
+		double PI = 3.1415926;
+		angle_xz[i] = 180.0/PI* std::acos( (e_xz[i].x * e_dg.x + e_xz[i].y * e_dg.y) );
+		// 变换到[-PI/2, PI/2]区域
+		if (angle_xz[i] > 90)
+			angle_xz[i] = angle_xz[i] - 180;
+	}
+	// 找到与骶骨水平线斜率最接近的胸椎
+	double angle_dg = 180.0 / 3.1415926*std::atan(m_dGrad_dg_xz);
+	double min_angle = 90;
+	int ref_idx = 0;
+	for (int i = 1; i <= m_total_xz; ++i)
+	{
+		double delta = std::abs(angle_xz[i] - angle_dg);
+		if (delta > 90)		//变换到[0,PI/2]
+			delta = 180 - delta;
+		if ( delta < min_angle)
+		{
+			min_angle = delta;
+			ref_idx = i;
+		}
+	}
+	// **********诊断************ //
+	// 往上诊断
+	for (int i = ref_idx - 1; i >= 1; --i)
+	{
+		if (m_strYfc_xz[i] == _T(""))		// 没有半脱位
+			continue;
+
+		if (m_strXie_xz[i] == _T(""))		// 没有楔形开口
+		{
+			m_strDiag_xz[i].Format(_T("%d"),i);
+			if (m_strBend_xz == _T(""))		// 没有侧弯
+				m_strDiag_xz[i] = m_strDiag_xz[i] + _T("P") + m_strYfc_xz[i] + _T("-SP");
+			else if (m_strBend_xz != m_strYfc_xz[i])		// 侧弯侧与原发测不一致，即与棘突旋转向一致，接触点编码为SP
+				m_strDiag_xz[i] = m_strDiag_xz[i] + _T("P") + m_strYfc_xz[i] + _T("-SP");
+			else if(m_strBend_xz == m_strYfc_xz[i])		// 侧弯侧与原发测一致，即与棘突旋转向不一致，接触点编码为T
+				m_strDiag_xz[i] = m_strDiag_xz[i] + _T("P") + m_strYfc_xz[i] + _T("-T");
+		}
+		else                 // 有楔形开口
+		{
+			m_strDiag_xz[i].Format(_T("%d"), i);
+			if (m_strXie_xz[i] == m_strYfc_xz[i])		// 楔形开口与原发测一致，与棘突偏向侧不一致，楔形编码:"I"，接触点编码：M
+			{
+				m_strDiag_xz[i] = m_strDiag_xz[i] + _T("P") + m_strYfc_xz[i] + _T("I") +  _T("-M");
+			}
+			else                                       // 楔形开口与原发测不一致，与棘突偏向侧一致，楔形编码:"S"，接触点编码：SP，无需标注
+			{
+				m_strDiag_xz[i] = m_strDiag_xz[i] + _T("P") + m_strYfc_xz[i] + _T("S");
+			}
+		}
+		// 放置诊断
+		cv::Point center_diag;
+		if (m_strYfc_xz[i] == _T("R"))			// 原发测在右，诊断代码放置在右边
+		{
+			center_diag.x = (m_point_cp_l_xz[i].x + 3 * m_point_cp_r_xz[i].x) / 4;
+			center_diag.y = (m_point_cp_l_xz[i].y + 3 * m_point_cp_r_xz[i].y) / 4;
+		}
+		else                                   // 原发测在左，诊断代码放置在左边
+		{
+			center_diag.x = (3 * m_point_cp_l_xz[i].x + m_point_cp_r_xz[i].x) / 4;
+			center_diag.y = (3 * m_point_cp_l_xz[i].y + m_point_cp_r_xz[i].y) / 4;
+		}
+		int baseline = 0;
+		cv::Size sz_wh = cv::getTextSize(m_strDiag_xz[i].GetBuffer(), m_font_type_diag, m_font_scale_diag, m_font_thick_diag, &baseline);
+		center_diag.x = center_diag.x - sz_wh.width / 2;
+		center_diag.y = center_diag.y - sz_wh.height / 2;
+		cv::putText(m_maskImg, m_strDiag_xz[i].GetBuffer(), center_diag, m_font_type_diag, m_font_scale_diag, m_maskColor, m_font_thick_diag);
+
+	}
+	// 往下诊断
+	for (int i = ref_idx+1; i <= m_total_xz; ++i)
+	{
+		if (m_strYfc_xz[i] == _T(""))		// 没有半脱位
+			continue;
+
+		if (m_strXie_xz[i] == _T(""))		// 没有楔形开口
+		{
+			m_strDiag_xz[i].Format(_T("%d"), i);
+			if (m_strBend_xz == _T(""))		// 没有侧弯
+				m_strDiag_xz[i] = m_strDiag_xz[i] + _T("P") + m_strYfc_xz[i] + _T("-SP");
+			else if (m_strBend_xz != m_strYfc_xz[i])		// 侧弯侧与原发测不一致，即与棘突旋转向一致，接触点编码为SP
+				m_strDiag_xz[i] = m_strDiag_xz[i] + _T("P") + m_strYfc_xz[i] + _T("-SP");
+			else if (m_strBend_xz == m_strYfc_xz[i])		// 侧弯侧与原发测一致，即与棘突旋转向不一致，接触点编码为T
+				m_strDiag_xz[i] = m_strDiag_xz[i] + _T("P") + m_strYfc_xz[i] + _T("-T");
+		}
+		else                 // 有楔形开口
+		{
+			m_strDiag_xz[i].Format(_T("%d"), i);
+			if (m_strXie_xz[i] == m_strYfc_xz[i])		// 楔形开口与原发测一致，与棘突偏向侧不一致，楔形编码:"I"，接触点编码：M
+			{
+				m_strDiag_xz[i] = m_strDiag_xz[i] + _T("P") + m_strYfc_xz[i] + _T("I") + _T("-M");
+			}
+			else                                       // 楔形开口与原发测不一致，与棘突偏向侧一致，楔形编码:"S"，接触点编码：SP，无需标注
+			{
+				m_strDiag_xz[i] = m_strDiag_xz[i] + _T("P") + m_strYfc_xz[i] + _T("S");
+			}
+		}
+		// 放置诊断
+		cv::Point center_diag;
+		if (m_strYfc_xz[i] == _T("R"))			// 原发测在右，诊断代码放置在右边
+		{
+			center_diag.x = (m_point_cp_l_xz[i].x + 3 * m_point_cp_r_xz[i].x) / 4;
+			center_diag.y = (m_point_cp_l_xz[i].y + 3 * m_point_cp_r_xz[i].y) / 4;
+		}
+		else                                   // 原发测在左，诊断代码放置在左边
+		{
+			center_diag.x = (3 * m_point_cp_l_xz[i].x + m_point_cp_r_xz[i].x) / 4;
+			center_diag.y = (3 * m_point_cp_l_xz[i].y + m_point_cp_r_xz[i].y) / 4;
+		}
+		int baseline = 0;
+		cv::Size sz_wh = cv::getTextSize(m_strDiag_xz[i].GetBuffer(), m_font_type_diag, m_font_scale_diag, m_font_thick_diag, &baseline);
+		center_diag.x = center_diag.x - sz_wh.width / 2;
+		center_diag.y = center_diag.y - sz_wh.height / 2;
+		cv::putText(m_maskImg, m_strDiag_xz[i].GetBuffer(), center_diag, m_font_type_diag, m_font_scale_diag, m_maskColor, m_font_thick_diag);
+
+	}
+	delete[]angle_xz;
+	delete[]e_xz;
 }

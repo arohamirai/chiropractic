@@ -75,8 +75,8 @@ private:
 	bool m_bLButtonDown; //记录是否按下了鼠标左键
 	int m_ctrlWidth;	// 图像实际长宽(mm)
 	int m_ctrlHeight;
-	double m_dWidthScale;	// 比例因子(mm/像素)
-	double m_dHeightScale;
+	double m_dwidth_scale;	// 比例因子(mm/像素)
+	double m_dheight_scale;
 
 	cv::Mat m_loadImg; //因为加入了缩放功能，没办法，只能再加一个变量保存原始载入的图像(历史遗留问题)
 	cv::Mat m_srcImg;  // 裁剪后图像，用于记录，该变量与原始载入图像可能并不一样，请知悉
@@ -182,24 +182,25 @@ private:
 // 胸椎诊断
 private:
 	CString m_strHint_xz[20];											// 胸椎操作提示
-	CString m_strDiag_xz[13];											// 胸椎诊断结果
+	CString m_strDiag_xz[20];											// 胸椎诊断结果
 	int m_curDiag_xz;													// 当前正在诊断的胸椎
 	int m_curDiag_xie_xz;												// 当前楔形诊断的操作步骤
-	double m_dThres_xie_xz;												// 楔形切口判断阈值
+	
 	CString m_strBend_xz;												// 胸椎侧弯凸侧
 	//bool m_bLuxs_xz[13];												// 胸椎是否脱位
-	int m_total_xz;													// 半脱位胸椎总数
+	int m_total_xz;														// 半脱位胸椎总数
 	double m_dGrad_bj_xz[2];											// 左右两条直线斜率 [0]--左，[1]--右
 	double m_dBias_bj_xz[2];											// 左右两条直线偏置 [0]--左，[1]--右
-	cv::Point m_point_cp_l_xz[13];										// 直线与左边界直线的交点
-	cv::Point m_point_cp_r_xz[13];										// 直线与右边界直线的交点，12条胸椎，一条基准线
+	cv::Point m_point_cp_l_xz[20];										// 直线与左边界直线的交点
+	cv::Point m_point_cp_r_xz[20];										// 直线与右边界直线的交点，12条胸椎，一条基准线
 
-	CString m_strYfc_xz[15];											// 原发测判定
-	CString m_strXie_xz[15];											// 楔形开口结果
+	CString m_strYfc_xz[20];											// 原发测判定（下缀1~12~L1腰椎，0弃用，下同）
+	CString m_strXie_xz[20];											// 楔形开口朝向
 	bool m_bHas_more_xz_xz;												// 是否有超过12条的胸椎
 	bool m_bDraw_L1_xz;													// 是否画L1腰椎
-	double m_bHas_draw_dd_line_xz;												// 是否已经做出骶骨水平线
+	double m_bHas_draw_dd_line_xz;										// 是否已经做出骶骨水平线
 	double m_dGrad_dg_xz;												// 骶骨水平线的斜率
+	double m_dThres_xie_xz;												// 楔形切口判断阈值
 	void diagXz();														//胸椎诊断
 
 ///////////////////////////////////////////////////////////////////
