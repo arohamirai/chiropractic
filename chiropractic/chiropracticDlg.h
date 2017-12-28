@@ -56,12 +56,12 @@ public:
 
 // 旋转侧判定参数
 private:
-	int m_rotateMethod;
-	int m_curRotateStep;
+	int m_yfcMethod;
+	int m_curYfcStep;
 	double m_dGrad_line_rotate;
 	CString m_strYfc;		// R/L/-
 	bool m_bHas_draw_yfc;
-	cv::Point m_point_rotate[4];
+	cv::Point m_point_yfc[4];
 
 // 通用参数
 private:
@@ -85,7 +85,7 @@ private:
 	cv::Mat m_maskShowImg; // 用于显示
 
 	cv::Point m_p1, m_p2;  // 图像坐标系,用于画图
-	cv::Point m_gp[30];		// 操作时会用到的点
+	cv::Point m_gp[50];		// 操作时会用到的点
 	cv::vector<logInfo> m_vecLog;	 // 操作日志
 	cv::vector<logInfo> m_vecDelLog; // 用于重做
 
@@ -208,16 +208,25 @@ private:
 private:
 	CString m_strHint_jz[20];											// 颈椎操作提示
 	CString m_strDiag_jz[13];											// 颈椎诊断结果
-	int m_curDiag_jz;													// 当前正在诊断的颈椎
-	int m_curDiag_step_jz;												// 当前诊断的操作步骤
-	double m_dThres_xie_jz;												// 楔形切口判断阈值
+	int m_curDiag_cw_jz;												// 侧位片上当前正在诊断的颈椎
+	int m_curDiag_zw_jz;												// 正位片上当前正在诊断的颈椎
+	int m_curDiag_step_cw_jz;											// 侧位片上当前诊断的操作步骤
+	int m_curDiag_step_zw_jz;											// 正位片上当前诊断的操作步骤
+	double m_dThres_xie_zw_jz;											// 楔形切口判断阈值
 	CString m_strBend_jz;												// 颈椎侧弯凸侧
 	//bool m_bLuxs_jz[13];												// 颈椎是否脱位
 	int m_total_lux_jz;													// 半脱位颈椎总数
-	double m_dGrad_bj_jz[2];											// 左右两条直线斜率 [0]--左，[1]--右
-	double m_dBias_bj_jz[2];											// 左右两条直线偏置 [0]--左，[1]--右
-	cv::Point m_point_cp_l_jz[13];										// 直线与左边界直线的交点
-	cv::Point m_point_cp_r_jz[13];										// 直线与右边界直线的交点
+	double m_dGrad_cwbj_jz[2];											// 侧位片上左右两条直线斜率 [0]--左，[1]--右
+	double m_dBias_cwbj_jz[2];											// 侧位片上左右两条直线偏置 [0]--左，[1]--右
+	double m_dGrad_zwbj_jz[2];											// 正位片上左右两条直线斜率 [0]--左，[1]--右
+	double m_dBias_zwbj_jz[2];											// 正位片上左右两条直线偏置 [0]--左，[1]--右
+	cv::Point m_point_cp_cw_l_jz[13];										// 侧位片上直线与左边界直线的交点
+	cv::Point m_point_cp_cw_r_jz[13];										// 侧位片上直线与右边界直线的交点
+	cv::Point m_point_cp_zw_l_jz[13];										// 正位片上直线与左边界直线的交点
+	cv::Point m_point_cp_zw_r_jz[13];										// 正位片上直线与右边界直线的交点
+	CString m_strYfc_jz[8];													// 颈椎原发测
+	CString m_strXie_zw_jz[10];
+	void diagJz();															// 颈椎诊断
 
 // 寰椎
 private:
@@ -227,17 +236,21 @@ private:
 	bool m_bHas_draw_step8;												// 是否需要做step 8 步，还是说要载入图像
 	double m_dThres_H_hz;												// 
 	CString m_strHint_hz[20];											// 寰椎操作提示
-	CString m_strDiag_hz[13];											// 寰椎诊断结果
-	double m_dGrad_czt_hz;
+	CString m_strDiag_hz;											// 寰椎诊断结果
+	double m_dGrad_czt_hz;												// 齿状突
 	double m_dBias_czt_hz;
 	double m_dGrad_bj_hz[2];											// 左右两条直线斜率 [0]--左，[1]--右
 	double m_dBias_bj_hz[2];											// 左右两条直线偏置 [0]--左，[1]--右
 	cv::Point m_point_cp_l_hz[5];										// 直线与左边界直线的交点
 	cv::Point m_point_cp_r_hz[5];										// 直线与右边界直线的交点，
-	cv::Point m_point_jzzk_bj_lt;												// 颈椎张口位片的边界直线点
-	cv::Point m_point_jzzk_bj_lb;
-	cv::Point m_point_jzzk_bj_rt;
-	cv::Point m_point_jzzk_bj_rb;
+	cv::Point m_point_jzzk_bj_hz[4];										// 颈椎张口位片的边界直线点
+
+	int m_curRotStep_hz;
+	cv::Point m_point_rot_hz;
+
+	void drawRotHz();
+
+	void diagHz();
 
 // 辅助函数
 private:
@@ -275,6 +288,7 @@ public:
 		double m_edit;
 		CComboBox m_Combo;
 		CComboBox m_Combo2;
+		CComboBox m_Combo3;
 		CMyEdit m_ctrlHint;
 		CMyEdit m_logo;
 		CMyEdit m_gallery;
@@ -327,4 +341,5 @@ public:
 	afx_msg void OnBnClickedButtonOp6();
 	afx_msg void OnBnClickedButtonOp7();
 	afx_msg void OnCbnSelchangeCombo2();
+	afx_msg void OnCbnSelchangeCombo3();
 };
