@@ -12,7 +12,7 @@
 enum drawTpye{ DRAW_LINE = 1, DRAW_DIAGNOSE, DRAW_LINE_MEASURE, DRAW_LINE_VERTICALLINE,DRAW_DIGU_LINE,DRAW_CIRCLE,DRAW_YAOZHUI_MEASURE,
 	DRAW_BASE_LINE, DRAW_XIONGZHUI_MEASURE, DRAW_JINGZHUIZHENGMIAN_MEASURE, DRAW_JINGZHUIZHANGKOU_MEASURE
 };
-enum opType {DRAW_RECT = 1, DRAW_MEASURE,DIAG_QG ,DIAG_DG, DIAG_YZ, DIAG_YZJ,DIAG_XZ,DIAG_JZ,DIAG_HZ
+enum opType {DRAW_RECT = 1, DRAW_MEASURE,DIAG_QG ,DIAG_DG, DIAG_YZ, DIAG_YZJ,DIAG_XZ,DIAG_JZ,DIAG_HZ, DIAG_ZG
 };
 typedef struct _logLnfo {
 	cv::Point p[10];
@@ -118,7 +118,7 @@ private:
 ///////////////////////////////////////////////////////////
 // DRAW_MEASURE
 	int m_recordFirstPoint; // 是否记录了第一个点
-
+	double l_l, l_r;
 ////////////////////////////////////////////////////////////////////////////////
 // 零、手动放置测量结果
 	CString m_strText;
@@ -228,12 +228,12 @@ private:
 	CString m_strXie_zw_jz[10];
 	void diagJz();															// 颈椎诊断
 
-// 寰椎
+// 七、 寰椎
 private:
-	cv::Mat m_jzzcImg;													// 颈椎正侧位片
-	cv::Mat m_jzzkImg;													// 颈椎张口位片
-	bool m_bHas_changed_img;											// 是否载入了新图像
-	bool m_bHas_draw_step8;												// 是否需要做step 8 步，还是说要载入图像
+	cv::Mat m_jzzcImg_hz;													// 颈椎正侧位片
+	cv::Mat m_jzzkImg_hz;													// 颈椎张口位片
+	bool m_bHas_changed_img_hz;											// 是否载入了新图像
+	bool m_bHas_draw_step8_hz;												// 是否需要做step 8 步，还是说要载入图像
 	double m_dThres_H_hz;												// 
 	CString m_strHint_hz[20];											// 寰椎操作提示
 	CString m_strDiag_hz;											// 寰椎诊断结果
@@ -251,11 +251,32 @@ private:
 	void drawRotHz();
 
 	void diagHz();
+// 八、 枕骨
+	cv::Mat m_jzzcImg_zg;													// 颈椎正侧位片
+	cv::Mat m_jzzkImg_zg;													// 颈椎张口位片
+	bool m_bHas_changed_img_zg;											// 是否载入了新图像
+	bool m_bHas_draw_step12_zg;												// 是否需要做step 8 步，还是说要载入图像
+	double m_dThres_H_zg;												// 
+	CString m_strHint_zg[20];											// 枕骨操作提示
+	CString m_strDiag_zg;											// 枕骨诊断结果
+	double m_dGrad_czt_zg;												// 齿状突
+	double m_dBias_czt_zg;
+	double m_dGrad_bj_zg[2];											// 左右两条直线斜率 [0]--左，[1]--右
+	double m_dBias_bj_zg[2];											// 左右两条直线偏置 [0]--左，[1]--右
+	cv::Point m_point_cp_l_zg[10];										// 直线与左边界直线的交点
+	cv::Point m_point_cp_r_zg[10];										// 直线与右边界直线的交点，
+	cv::Point m_point_jzzk_bj_zg[4];										// 颈椎张口位片的边界直线点
 
+	int m_curRotStep_zg;
+	cv::Point m_point_rot_zg;
+
+	void drawRotZg();
+
+	void diagZg();
 // 辅助函数
 private:
 	// 计算两条直线的交点
-	cv::Point intersect(cv::Point aa, cv::Point bb, cv::Point cc, cv::Point dd);
+	cv::Point intersect(const cv::Point aa, const cv::Point bb, const cv::Point cc, const cv::Point dd);
 	// 判断两条直线是否相交
 	//bool intersect(CvPoint aa, CvPoint bb, CvPoint cc, CvPoint dd);
 	 // 用于判断两条直线是否平行（比较斜率是否相等）
@@ -342,4 +363,6 @@ public:
 	afx_msg void OnBnClickedButtonOp7();
 	afx_msg void OnCbnSelchangeCombo2();
 	afx_msg void OnCbnSelchangeCombo3();
+	afx_msg void OnBnClickedButtonOp8();
+	afx_msg void OnBnClickedButton16();
 };
