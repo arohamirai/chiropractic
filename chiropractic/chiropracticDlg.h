@@ -9,7 +9,8 @@
 #include "MyEdit.h"
 
 
-enum drawTpye{ DRAW_LINE = 1, DRAW_DIAGNOSE, DRAW_LINE_MEASURE, DRAW_LINE_VERTICALLINE,DRAW_DIGU_LINE,DRAW_CIRCLE,DRAW_YAOZHUI_MEASURE,
+enum drawTpye {
+	DRAW_LINE = 1, DRAW_DIAGNOSE, DRAW_LINE_MEASURE, DRAW_DIGU_SPX, DRAW_DI1, DRAW_LINE_VERTICALLINE, DRAW_DIGU_LINE, DRAW_CIRCLE, DRAW_YAOZHUI_MEASURE,
 	DRAW_BASE_LINE, DRAW_XIONGZHUI_MEASURE, DRAW_JINGZHUIZHENGMIAN_MEASURE, DRAW_JINGZHUIZHANGKOU_MEASURE
 };
 enum opType {DRAW_RECT = 1, DRAW_MEASURE,DIAG_QG ,DIAG_DG, DIAG_YZ, DIAG_YZJ,DIAG_XZ,DIAG_JZ,DIAG_HZ, DIAG_ZG
@@ -105,7 +106,7 @@ private:
 	double m_dfont_scale_measure;			// 划片时测量的值得字体大小
 	int m_font_thick_measure;			// 划片时测量的值得字体宽度
 	int m_font_type_diag;				// 诊断结果的字体类型
-	double m_font_scale_diag;			// 诊断结果的字体大小
+	double m_dfont_scale_diag;			// 诊断结果的字体大小
 	int m_font_thick_diag;			// 诊断结果字体宽度
 	CString *m_strHint;					// 操作提示
 // 辅助变量
@@ -121,8 +122,6 @@ private:
 	double l_l, l_r;
 ////////////////////////////////////////////////////////////////////////////////
 // 零、手动放置测量结果
-	CString m_strText;
-	bool m_bPutText;
 // 一、髂骨半脱位
 //正经变量
 private:
@@ -270,8 +269,6 @@ private:
 	int m_curRotStep_zg;
 	cv::Point m_point_rot_zg;
 
-	void drawRotZg();
-
 	void diagZg();
 // 辅助函数
 private:
@@ -295,10 +292,6 @@ private:
 	void initParam();
 	// 针对提示语句，对当前步骤的语句进行高亮
 	void remindColor();
-	// 按钮控件初始化
-	void initCtrlBtn(BOOL selBtn0, BOOL selBtn1);
-	// 按钮控件外观改变
-	void changeCtrlBtn(INT selBtn = NULL, INT selBtn1 = NULL);
 	// 旋转判断函数
 	bool drawYfc(cv::Point pt);
 	// 
@@ -309,30 +302,8 @@ public:
 		double m_edit;
 		CComboBox m_Combo;
 		CComboBox m_Combo2;
-		CComboBox m_Combo3;
 		CMyEdit m_ctrlHint;
 		CMyEdit m_logo;
-		CMyEdit m_gallery;
-
-		CMFCButtonEx m_button2;
-		CMFCButtonEx m_button3;
-		CMFCButtonEx m_button6;
-		CMFCButtonEx m_button8;
-		CMFCButtonEx m_button9;
-		CMFCButtonEx m_button15;
-		CMFCButtonEx m_button14;
-		CMFCButtonEx m_button10;
-		CMFCButtonEx m_button11;
-
-		CMFCButtonEx m_button_op1;
-		CMFCButtonEx m_button_op2;
-		CMFCButtonEx m_button_op3;
-		CMFCButtonEx m_button_op4;
-		CMFCButtonEx m_button_op5;
-		CMFCButtonEx m_button_op6;
-		CMFCButtonEx m_button_op7;
-		CMFCButtonEx m_button_op8;
-		CMFCButtonEx m_button_op9;
 public:
 	void Invalidate(BOOL bErase = 1);
 	void Draw(CDC *pDC);
@@ -340,7 +311,6 @@ public:
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
 	afx_msg void OnBnClickedButton3();
-	afx_msg void OnBnClickedButton4();
 	afx_msg void OnBnClickedButton9();
 	afx_msg void OnBnClickedButton8();
 	afx_msg void OnBnClickedButton10();
@@ -352,17 +322,14 @@ public:
 	afx_msg void OnBnClickedButton11();
 	afx_msg void OnBnClickedButton13();
 	afx_msg void OnBnClickedButtonOp1();
-	afx_msg void OnBnClickedButtonOp2();
 	afx_msg void OnBnClickedButtonOp3();
 	afx_msg void OnBnClickedCancel();
-	afx_msg void OnBnClickedButton15();
+
 	afx_msg void OnBnClickedButtonOp4();
-	afx_msg void OnBnClickedButton14();
 	afx_msg void OnBnClickedButtonOp5();
 	afx_msg void OnBnClickedButtonOp6();
 	afx_msg void OnBnClickedButtonOp7();
 	afx_msg void OnCbnSelchangeCombo2();
-	afx_msg void OnCbnSelchangeCombo3();
 	afx_msg void OnBnClickedButtonOp8();
 	afx_msg void OnBnClickedButton16();
 };
