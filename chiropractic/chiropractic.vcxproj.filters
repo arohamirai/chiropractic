@@ -45,6 +45,24 @@
     <ClInclude Include="InputName.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Register.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="MyEdit.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="InputText.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="InputYZ.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="RotateSee.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Bend.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="chiropractic.cpp">
@@ -66,6 +84,24 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="InputName.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Register.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="MyEdit.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="InputText.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="InputYZ.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="RotateSee.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Bend.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

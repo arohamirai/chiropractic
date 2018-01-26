@@ -5,7 +5,7 @@
 #include "stdafx.h"
 #include "chiropractic.h"
 #include "chiropracticDlg.h"
-
+#include "Register.h"
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -68,8 +68,92 @@ BOOL CchiropracticApp::InitInstance()
 	// 更改用于存储设置的注册表项
 	// TODO: 应适当修改该字符串，
 	// 例如修改为公司或组织名
-	SetRegistryKey(_T("应用程序向导生成的本地应用程序"));
+	SetRegistryKey(_T("福建(泉州)哈工大工程技术研究院"));
 
+	//// 验证注册码
+	//unsigned long s1, s2;
+	//char sel;
+	//sel = '1';
+	//CString MyCpuID, CPUID1, CPUID2;
+	//__asm {
+	//	mov eax, 01h
+	//	xor edx, edx
+	//	cpuid
+	//	mov s1, edx
+	//	mov s2, eax
+	//}
+	////CPUID1.Format("%08X%08X",s1,s2);
+	//CPUID1.Format(TEXT("%08X%08X"), s1, s2);
+	//__asm {
+	//	mov eax, 03h
+	//	xor ecx, ecx
+	//	xor edx, edx
+	//	cpuid
+	//	mov s1, edx
+	//	mov s2, ecx
+	//} 
+	//CPUID2.Format(TEXT("%08X%08X"), s1, s2);
+
+	//MyCpuID = CPUID1 + CPUID2;
+	//DWORD ser;
+	//TCHAR namebuf[128];
+	//TCHAR filebuf[128];
+	//::GetVolumeInformation(TEXT("c:\\"), namebuf, 128, &ser, 0, 0, filebuf, 128);
+	//CString strdisk;
+	//strdisk.Format(TEXT("%d"), ser);
+	//CString strmachine;
+	//strmachine = MyCpuID.Mid(13, 5); //从MyCpuID的第13位开始取5个
+	//strmachine += strdisk.Mid(3, 5);//从strdisk的第3位开始取5个,合并生成机器码
+
+	//CString reg,res;
+	//CString code[16] = { TEXT("ad"),TEXT("eh"),TEXT("im"),TEXT("np"),TEXT("ru"),TEXT("vy"),TEXT("zc"),TEXT("gk"),
+	//	TEXT("pt"),TEXT("xb"),TEXT("fj"),TEXT("ox"),TEXT("wa"),TEXT("ei"),TEXT("nr"),TEXT("qu") };
+	//strmachine.MakeLower();
+	//int num = 0;
+	//for (int i = 0; i<10; i++)
+	//{
+	//	char p = strmachine.GetAt(i);
+	//	if (p >= 'a'&&p <= 'f')
+	//		num = p - 'a' + 10;
+	//	else
+	//		num = p - '0';
+	//	CString tmp = code[num];
+	//	reg += tmp;
+	//}
+	//reg.MakeUpper();
+	//res = reg.Mid(0, 5) + reg.Mid(5, 5) + reg.Mid(10, 5) + reg.Mid(15, 5);
+
+	//CFile file;
+	//CFileException e;
+	//CString resfile = _T("");
+	//if (file.Open(_T("lisense.dat"), CFile::modeRead, &e))
+	//{
+	//	CArchive ar(&file, CArchive::load);
+	//	try
+	//	{
+	//		ar >> resfile;
+	//	}
+	//	catch (CFileException *e)
+	//	{
+	//		::MessageBox(NULL,_T("读取许可证文件错误，程序将退出！"),_T("错误"),MB_OK);
+	//		return FALSE;
+	//	}
+	//	file.Close();
+	//}
+	//else
+	//{
+	//	file.Abort();
+	//}
+
+	//if (resfile != res)
+	//{
+	//	CRegister regDlg;
+	//	regDlg.m_machineNumber = strmachine.MakeUpper();
+	//	regDlg.m_res = res;
+	//	INT_PTR ret = regDlg.DoModal();
+	//	if (ret != IDOK)
+	//		return FALSE;	
+	//}
 	CchiropracticDlg dlg;
 	m_pMainWnd = &dlg;
 	INT_PTR nResponse = dlg.DoModal();
